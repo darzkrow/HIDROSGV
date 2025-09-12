@@ -1,0 +1,68 @@
+{% extends 'dashboard/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Editar perfil{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+	<div class="col-md-8">
+		<h2>Editar perfil de {{ user.get_full_name }} ({{ user.username }})</h2>
+		<form method="post" enctype="multipart/form-data">
+			{% csrf_token %}
+			<div class="mb-3">
+				<label for="first_name" class="form-label">Nombre</label>
+				<input type="text" name="first_name" id="first_name" class="form-control" value="{{ user.first_name }}">
+			</div>
+			<div class="mb-3">
+				<label for="last_name" class="form-label">Apellido</label>
+				<input type="text" name="last_name" id="last_name" class="form-control" value="{{ user.last_name }}">
+			</div>
+			<div class="mb-3">
+				<label for="email" class="form-label">Correo electrónico</label>
+				<input type="email" name="email" id="email" class="form-control" value="{{ user.email }}">
+			</div>
+			<div class="mb-3">
+				<label for="telefono" class="form-label">Teléfono</label>
+				<input type="text" name="telefono" id="telefono" class="form-control" value="{{ profile.telefono }}">
+			</div>
+			<div class="mb-3">
+				<label for="nac" class="form-label">Nacionalidad</label>
+				<select name="nac" id="nac" class="form-select">
+					{% for code, label in profile.NAC_CHOICES %}
+						<option value="{{ code }}" {% if profile.nac == code %}selected{% endif %}>{{ label }}</option>
+					{% endfor %}
+				</select>
+			</div>
+			<div class="mb-3">
+				<label for="dni" class="form-label">Cédula</label>
+				<input type="number" name="dni" id="dni" class="form-control" value="{{ profile.dni }}">
+			</div>
+			<div class="mb-3">
+				<label for="bio" class="form-label">Biografía</label>
+				<textarea name="bio" id="bio" class="form-control">{{ profile.bio }}</textarea>
+			</div>
+			<div class="mb-3">
+				<label for="avatar" class="form-label">Avatar</label>
+				<input type="file" name="avatar" id="avatar" class="form-control">
+				{% if profile.avatar %}
+					<img src="{{ profile.avatar.url }}" class="img-thumbnail mt-2" width="120" alt="Avatar actual">
+				{% endif %}
+			</div>
+			{% if request.user.is_superuser %}
+			<div class="mb-3">
+				<label for="groups" class="form-label">Rol/Grupo</label>
+				<select name="groups" id="groups" class="form-select">
+					{% for group in user.groups.all %}
+						<option value="{{ group.id }}" selected>{{ group.name }}</option>
+					{% endfor %}
+					{% for group in groups %}
+						{% if group not in user.groups.all %}
+							<option value="{{ group.id }}">{{ group.name }}</option>
+						{% endif %}
+					{% endfor %}
+				</select>
+			</div>
+			{% endif %}
+			<button type="submit" class="btn btn-primary">Guardar cambios</button>
+		</form>
+	</div>
+</div>
+{% endblock %}

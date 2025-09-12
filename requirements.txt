@@ -16,3 +16,10 @@ six==1.17.0
 sqlparse==0.5.3
 tzdata==2025.2
 uritemplate==4.2.0
+crispy-bootstrap5
+gunicorn
+django-crispy-forms
+whitenoise
+psycopg2-binary
+django-environ
+django-cors-headers

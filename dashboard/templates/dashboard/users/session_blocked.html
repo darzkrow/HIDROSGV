@@ -1,0 +1,11 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<div class="container mt-5 text-center">
+	<h2>Sesión bloqueada por inactividad</h2>
+	<p>Por motivos de seguridad, tu sesión ha sido cerrada por inactividad.</p>
+	<form method="post">
+		{% csrf_token %}
+		<button type="submit" class="btn btn-primary">Iniciar sesión nuevamente</button>
+	</form>
+</div>
+{% endblock %}

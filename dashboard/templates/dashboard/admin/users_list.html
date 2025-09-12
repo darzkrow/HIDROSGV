@@ -1,0 +1,121 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Usuarios registrados{% endblock %}
+{% block content %}
+        {% if messages %}
+            {% for message in messages %}
+                {% if forloop.first %}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+<div class="container mt-4">
+    <h2>Usuarios registrados</h2>
+    <p><strong>Cantidad total:</strong> {{ cantidad }}</p>
+
+    <div class="mb-3">
+        <a href="{% url 'register' %}" class="btn btn-success">Registrar nuevo usuario</a>
+    </div>
+    <form method="get" class="mb-3 row g-2">
+        <div class="col-md-3">
+            <input type="text" name="q" class="form-control" placeholder="Buscar por usuario, nombre o email" value="{{ request.GET.q }}">
+        </div>
+        <div class="col-md-3">
+            <select name="group" class="form-select">
+                <option value="">Todos los grupos</option>
+                {% for group in grupos %}
+                    <option value="{{ group.id }}" {% if request.GET.group == group.id|stringformat:'s' %}selected{% endif %}>{{ group.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Filtrar</button>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Ir al dashboard</a>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'index' %}" class="btn btn-outline-dark">Inicio</a>
+        </div>
+    </form>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>Nombre completo</th>
+                <th>Email</th>
+                <th>Grupos</th>
+                <th>Acciones</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.get_full_name }}</td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% for group in user.groups.all %}
+                        <span class="badge bg-info">{{ group.name }}</span>
+                    {% empty %}
+                        <span class="text-muted">Sin grupo</span>
+                    {% endfor %}
+                </td>
+                <td>
+                    <a href="{% url 'detalle_user_id' user.id %}" class="btn btn-sm btn-primary">Ver perfil</a>
+                    <a href="{% url 'edit_profile' %}?user_id={{ user.id }}" class="btn btn-sm btn-warning">Editar</a>
+                    <form method="post" action="{% url 'reset_password' user.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que deseas resetear la contraseña?');">Resetear contraseña</button>
+                    </form>
+                    <form method="post" action="{% url 'toggle_active' user.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        {% if user.is_active %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Deshabilitar usuario?');">Deshabilitar</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('¿Habilitar usuario?');">Habilitar</button>
+                        {% endif %}
+                    </form>
+                </td>
+                <td>
+                    {% if user.is_active %}
+                        <span class="badge bg-success">Activo</span>
+                    {% else %}
+                        <span class="badge bg-danger">Deshabilitado</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <nav aria-label="Paginación de usuarios">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.group %}group={{ request.GET.group }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% else %}
+                    <li class="page-item"><a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.group %}group={{ request.GET.group }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.group %}group={{ request.GET.group }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endblock %}

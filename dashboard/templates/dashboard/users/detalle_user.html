@@ -1,0 +1,20 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Detalle de Usuario{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Detalle de Usuario</h2>
+    <div class="card mb-3">
+        <div class="card-body">
+            <h5 class="card-title">{{ user.get_full_name }} ({{ user.username }})</h5>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+            <p><strong>DNI:</strong> {{ profile.dni }}</p>
+            <p><strong>Biografía:</strong> {{ profile.bio }}</p>
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}" class="img-thumbnail" width="120" alt="Avatar">
+            {% endif %}
+        </div>
+    </div>
+    <a href="{% url 'edit_profile' %}" class="btn btn-primary">Editar perfil</a>
+    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Volver al dashboard</a>
+</div>
+{% endblock %}

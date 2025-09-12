@@ -1,0 +1,53 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Crear Grupo/Rol{% endblock %}
+{% block content %}
+<h2>Crear Grupo/Rol y Asignar Permisos</h2>
+{% if message %}
+	<div class="alert alert-success">{{ message }}</div>
+{% endif %}
+<form method="post">
+	{% csrf_token %}
+	<div class="mb-3">
+		<label for="group_name" class="form-label">Nombre del grupo/rol:</label>
+		<input type="text" name="group_name" id="group_name" class="form-control" required>
+	</div>
+	<div class="mb-3">
+		<label class="form-label">Permisos:</label>
+		<div class="row">
+			{% for perm in permissions %}
+				<div class="col-md-4">
+					<input type="checkbox" name="perms" value="{{ perm.id }}" id="perm{{ perm.id }}">
+					<label for="perm{{ perm.id }}">{{ perm.name }}</label>
+				</div>
+			{% endfor %}
+		</div>
+	</div>
+	<button type="submit" class="btn btn-primary">Crear grupo y asignar permisos</button>
+</form>
+<hr>
+<h4>Grupos existentes</h4>
+<ul>
+	{% for group in groups %}
+		<li>
+			<form method="post" style="display:inline;">
+				{% csrf_token %}
+				<button type="submit" name="delete_group" value="{{ group.id }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Seguro que deseas eliminar este grupo?');">Eliminar</button>
+			</form>
+			<strong>{{ group.name }}</strong>
+			<form method="post" class="mt-2 mb-2">
+				{% csrf_token %}
+				<label>Permisos:</label>
+				<div class="row">
+					{% for perm in permissions %}
+						<div class="col-md-4">
+							<input type="checkbox" name="perms_{{ group.id }}" value="{{ perm.id }}" id="editperm{{ group.id }}_{{ perm.id }}" {% if perm in group.permissions.all %}checked{% endif %}>
+							<label for="editperm{{ group.id }}_{{ perm.id }}">{{ perm.name }}</label>
+						</div>
+					{% endfor %}
+				</div>
+				<button type="submit" name="edit_group" value="{{ group.id }}" class="btn btn-warning btn-sm">Actualizar permisos</button>
+			</form>
+		</li>
+	{% endfor %}
+</ul>
+{% endblock %}
