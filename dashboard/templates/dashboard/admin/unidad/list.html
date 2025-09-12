@@ -1,0 +1,30 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<h2>Unidades Organizativas</h2>
+<a href="{% url 'unidad_create' %}" class="btn btn-success mb-2">Nueva Unidad</a>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Empresa</th>
+            <th>Prefijo</th>
+            <th>Nombre</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for unidad in unidades %}
+        <tr>
+            <td>{{ unidad.empresa.nombre }}</td>
+            <td>{{ unidad.prefijo }}</td>
+            <td>{{ unidad.nombre }}</td>
+            <td>
+                <a href="{% url 'unidad_update' unidad.pk %}" class="btn btn-primary btn-sm">Editar</a>
+                <a href="{% url 'unidad_delete' unidad.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No hay unidades registradas.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

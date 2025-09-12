@@ -1,0 +1,29 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<h2>Empresas</h2>
+<a href="{% url 'empresa_create' %}" class="btn btn-success mb-2">Nueva Empresa</a>
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>RIF</th>
+            <th>Título</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for empresa in empresas %}
+        <tr>
+            <td>{{ empresa.nombre }}</td>
+            <td>{{ empresa.rif }}</td>
+            <td>{{ empresa.titulo }}</td>
+            <td>
+                <a href="{% url 'empresa_update' empresa.pk %}" class="btn btn-primary btn-sm">Editar</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No hay empresas registradas.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

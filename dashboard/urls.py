@@ -1,7 +1,12 @@
-
 from django.urls import path
 from . import views
 from .views import session_blocked_view
+from .views import (
+    EmpresaListView, EmpresaCreateView, EmpresaUpdateView,
+    UnidadListView, UnidadCreateView, UnidadUpdateView, UnidadDeleteView,
+    DepartamentoListView, DepartamentoCreateView, DepartamentoUpdateView, DepartamentoDeleteView,
+    CargoListView, CargoCreateView, CargoUpdateView, CargoDeleteView
+)
 
 urlpatterns = [
     path('', views.index_view, name='index'),
@@ -20,4 +25,23 @@ urlpatterns = [
     path('users-list/', views.users_list_view, name='users_list'),
     path('reset-password/<int:user_id>/', views.reset_password_view, name='reset_password'),
     path('toggle-active/<int:user_id>/', views.toggle_active_view, name='toggle_active'),
+
+    path('empresas/', EmpresaListView.as_view(), name='empresa_list'),
+    path('empresas/nueva/', EmpresaCreateView.as_view(), name='empresa_create'),
+    path('empresas/<int:pk>/editar/', EmpresaUpdateView.as_view(), name='empresa_update'),
+
+    path('unidades/', UnidadListView.as_view(), name='unidad_list'),
+    path('unidades/nueva/', UnidadCreateView.as_view(), name='unidad_create'),
+    path('unidades/<int:pk>/editar/', UnidadUpdateView.as_view(), name='unidad_update'),
+    path('unidades/<int:pk>/eliminar/', UnidadDeleteView.as_view(), name='unidad_delete'),
+
+    path('departamentos/', DepartamentoListView.as_view(), name='departamento_list'),
+    path('departamentos/nuevo/', DepartamentoCreateView.as_view(), name='departamento_create'),
+    path('departamentos/<int:pk>/editar/', DepartamentoUpdateView.as_view(), name='departamento_update'),
+    path('departamentos/<int:pk>/eliminar/', DepartamentoDeleteView.as_view(), name='departamento_delete'),
+
+    path('cargos/', CargoListView.as_view(), name='cargo_list'),
+    path('cargos/nuevo/', CargoCreateView.as_view(), name='cargo_create'),
+    path('cargos/<int:pk>/editar/', CargoUpdateView.as_view(), name='cargo_update'),
+    path('cargos/<int:pk>/eliminar/', CargoDeleteView.as_view(), name='cargo_delete'),
 ]

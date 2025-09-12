@@ -2,6 +2,7 @@ from django.conf import settings
 from django.shortcuts import redirect
 from django.utils import timezone
 from django.contrib.auth import logout
+from django.urls import resolve
 
 class SessionTimeoutMiddleware:
     def __init__(self, get_response):
@@ -10,9 +11,6 @@ class SessionTimeoutMiddleware:
 
     def __call__(self, request):
         print(f"[SessionTimeoutMiddleware] Timeout configurado: {self.timeout} segundos")  # Depuración
-        # ...existing code...
-
-    def __call__(self, request):
         if request.user.is_authenticated:
             last_activity = request.session.get('last_activity')
             now = timezone.now().timestamp()
@@ -39,3 +37,14 @@ class SessionTimeoutMiddleware:
             request.session.pop('last_activity', None)
         response = self.get_response(request)
         return response
+
+class ForceLoginMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        public_paths = ['index', 'login', 'register', 'admin:login', 'session_blocked']
+        current_url = resolve(request.path_info).url_name
+        if not request.user.is_authenticated and current_url not in public_paths:
+            return redirect('/')
+        return self.get_response(request)

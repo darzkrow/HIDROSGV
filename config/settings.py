@@ -76,6 +76,7 @@ MIDDLEWARE = MIDDLEWARE_THIRD + MIDDLEWARE_DJANGO + MIDDLEWARE_LOCAL
 # Middleware personalizado para bloqueo por inactividad
 auth_index = MIDDLEWARE.index('django.contrib.auth.middleware.AuthenticationMiddleware')
 MIDDLEWARE.insert(auth_index + 1, 'dashboard.middleware.SessionTimeoutMiddleware')
+MIDDLEWARE.insert(auth_index + 2, 'dashboard.middleware.ForceLoginMiddleware')
 
 SESSION_INACTIVITY_TIMEOUT = env.int('SESSION_INACTIVITY_TIMEOUT', default=900)
 
@@ -91,6 +92,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'dashboard.context_processors.empresa_context',
             ],
         },
     },
@@ -181,3 +183,5 @@ CORS_ALLOW_HEADERS = [
 CORS_EXPOSE_HEADERS = [
     'Content-Disposition',
 ]
+
+LOGIN_URL = '/login/'

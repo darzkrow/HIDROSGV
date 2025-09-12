@@ -1,0 +1,9 @@
+{% extends 'dashboard/base.html' %}
+{% block content %}
+<h2>Editar Unidad Organizativa</h2>
+<form method="post">{% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Actualizar</button>
+    <a href="{% url 'unidad_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

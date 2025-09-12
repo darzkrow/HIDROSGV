@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 class User(AbstractUser):
 	email = models.EmailField('Correo electrónico', unique=True)
@@ -29,6 +30,10 @@ class Empresa(models.Model):
 	direccion = models.CharField('Dirección', max_length=200, blank=True, null=True)
 	telefono = models.CharField('Teléfono', max_length=20, blank=True, null=True)
 	email = models.EmailField('Email', blank=True, null=True)
+	creado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='empresas_creadas')
+	modificado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='empresas_modificadas')
+	fecha_creacion = models.DateTimeField(auto_now_add=True)
+	fecha_modificacion = models.DateTimeField(auto_now=True)
 
 	class Meta:
 		verbose_name = 'Empresa'
@@ -38,12 +43,21 @@ class Empresa(models.Model):
 	def __str__(self):
 		return self.nombre
 
+	def save(self, *args, **kwargs):
+		if not self.pk and Empresa.objects.exists():
+			raise Exception('Solo puede existir una empresa en el sistema.')
+		super().save(*args, **kwargs)
+
 
 class UnidadOrganizativa(models.Model):
 	empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='unidades')
 	prefijo = models.CharField('Prefijo', max_length=10, unique=True)
 	nombre = models.CharField('Nombre de la unidad', max_length=100, unique=True)
 	descripcion = models.CharField('Descripción', max_length=200, blank=True, null=True)
+	creado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='unidades_creadas')
+	modificado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='unidades_modificadas')
+	fecha_creacion = models.DateTimeField(auto_now_add=True)
+	fecha_modificacion = models.DateTimeField(auto_now=True)
 
 	class Meta:
 		verbose_name = 'Unidad Organizativa'
@@ -84,3 +98,37 @@ def create_profile_for_new_user(sender, instance, created, **kwargs):
 	if created:
 		# No asignar dni por defecto para evitar colisiones
 		Profile.objects.get_or_create(user=instance)
+
+class Departamento(models.Model):
+    unidad = models.ForeignKey(UnidadOrganizativa, on_delete=models.CASCADE, related_name='departamentos')
+    nombre = models.CharField('Nombre del departamento', max_length=100, unique=True)
+    descripcion = models.CharField('Descripción', max_length=200, blank=True, null=True)
+    creado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='departamentos_creados')
+    modificado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='departamentos_modificados')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Departamento'
+        verbose_name_plural = 'Departamentos'
+        db_table = 'departamentos'
+
+    def __str__(self):
+        return f"{self.nombre} ({self.unidad.nombre})"
+
+class Cargo(models.Model):
+    departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE, related_name='cargos')
+    nombre = models.CharField('Nombre del cargo', max_length=100, unique=True)
+    descripcion = models.CharField('Descripción', max_length=200, blank=True, null=True)
+    creado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='cargos_creados')
+    modificado_por = models.ForeignKey('User', null=True, blank=True, on_delete=models.SET_NULL, related_name='cargos_modificados')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_modificacion = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Cargo'
+        verbose_name_plural = 'Cargos'
+        db_table = 'cargos'
+
+    def __str__(self):
+        return f"{self.nombre} ({self.departamento.nombre})"

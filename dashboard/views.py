@@ -160,7 +160,7 @@ def create_group_view(request):
 def roles_permissions_view(request):
 
 	users = User.objects.all()
-	groups = Group.objects.all()
+	grupos = Group.objects.all()
 	permissions = Permission.objects.all()
 	message = None
 	if request.method == 'POST':
@@ -173,7 +173,7 @@ def roles_permissions_view(request):
 			message = f'Rol "{group.name}" asignado a {user.username}.'
 	return render(request, 'dashboard/admin/roles_permissions.html', {
 		'users': users,
-		'groups': groups,
+		'groups': grupos,
 		'permissions': permissions,
 		'message': message
 	})
@@ -339,3 +339,127 @@ def edit_profile_view(request):
 				return redirect('users_list')
 			return redirect('dashboard')
 	return render(request, 'dashboard/users/edit_profile.html', {'profile': profile, 'user': user, 'groups': groups})
+
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from .models import Empresa, UnidadOrganizativa, Departamento, Cargo
+from django.urls import reverse_lazy
+
+class EmpresaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Empresa
+    template_name = 'dashboard/admin/empresa/list.html'
+    context_object_name = 'empresas'
+    permission_required = 'dashboard.view_empresa'
+
+class EmpresaCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Empresa
+    fields = ['nombre', 'razon_social', 'rif', 'titulo', 'direccion', 'telefono', 'email']
+    template_name = 'dashboard/admin/empresa/create.html'
+    success_url = reverse_lazy('empresa_list')
+    permission_required = 'dashboard.add_empresa'
+
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except Exception as e:
+            if str(e) == 'Solo puede existir una empresa en el sistema.':
+                messages.error(self.request, 'Solo puede existir una empresa en el sistema.')
+                return redirect('empresa_list')
+            raise e
+
+class EmpresaUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Empresa
+    fields = ['nombre', 'razon_social', 'rif', 'titulo', 'direccion', 'telefono', 'email']
+    template_name = 'dashboard/admin/empresa/update.html'
+    success_url = reverse_lazy('empresa_list')
+    permission_required = 'dashboard.change_empresa'
+
+class EmpresaDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Empresa
+    template_name = 'dashboard/admin/empresa/delete.html'
+    success_url = reverse_lazy('empresa_list')
+    permission_required = 'dashboard.delete_empresa'
+
+# Repetir estructura para UnidadOrganizativa, Departamento y Cargo
+class UnidadListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = UnidadOrganizativa
+    template_name = 'dashboard/admin/unidad/list.html'
+    context_object_name = 'unidades'
+    permission_required = 'dashboard.view_unidadorganizativa'
+
+class UnidadCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = UnidadOrganizativa
+    fields = ['empresa', 'prefijo', 'nombre', 'descripcion']
+    template_name = 'dashboard/admin/unidad/create.html'
+    success_url = reverse_lazy('unidad_list')
+    permission_required = 'dashboard.add_unidadorganizativa'
+
+class UnidadUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = UnidadOrganizativa
+    fields = ['empresa', 'prefijo', 'nombre', 'descripcion']
+    template_name = 'dashboard/admin/unidad/update.html'
+    success_url = reverse_lazy('unidad_list')
+    permission_required = 'dashboard.change_unidadorganizativa'
+
+class UnidadDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = UnidadOrganizativa
+    template_name = 'dashboard/admin/unidad/delete.html'
+    success_url = reverse_lazy('unidad_list')
+    permission_required = 'dashboard.delete_unidadorganizativa'
+
+class DepartamentoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Departamento
+    template_name = 'dashboard/admin/departamento/list.html'
+    context_object_name = 'departamentos'
+    permission_required = 'dashboard.view_departamento'
+
+class DepartamentoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Departamento
+    fields = ['unidad', 'nombre', 'descripcion']
+    template_name = 'dashboard/admin/departamento/create.html'
+    success_url = reverse_lazy('departamento_list')
+    permission_required = 'dashboard.add_departamento'
+
+class DepartamentoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Departamento
+    fields = ['unidad', 'nombre', 'descripcion']
+    template_name = 'dashboard/admin/departamento/update.html'
+    success_url = reverse_lazy('departamento_list')
+    permission_required = 'dashboard.change_departamento'
+
+class DepartamentoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Departamento
+    template_name = 'dashboard/admin/departamento/delete.html'
+    success_url = reverse_lazy('departamento_list')
+    permission_required = 'dashboard.delete_departamento'
+
+class CargoListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Cargo
+    template_name = 'dashboard/admin/cargo/list.html'
+    context_object_name = 'cargos'
+    permission_required = 'dashboard.view_cargo'
+
+class CargoCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+    model = Cargo
+    fields = ['departamento', 'nombre', 'descripcion']
+    template_name = 'dashboard/admin/cargo/create.html'
+    success_url = reverse_lazy('cargo_list')
+    permission_required = 'dashboard.add_cargo'
+
+class CargoUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Cargo
+    fields = ['departamento', 'nombre', 'descripcion']
+    template_name = 'dashboard/admin/cargo/update.html'
+    success_url = reverse_lazy('cargo_list')
+    permission_required = 'dashboard.change_cargo'
+
+class CargoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+    model = Cargo
+    template_name = 'dashboard/admin/cargo/delete.html'
+    success_url = reverse_lazy('cargo_list')
+    permission_required = 'dashboard.delete_cargo'
+
+from .models import Empresa
+
+def get_empresa():
+    return Empresa.objects.first()
