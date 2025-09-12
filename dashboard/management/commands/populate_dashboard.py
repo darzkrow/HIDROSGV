@@ -43,18 +43,17 @@ class Command(BaseCommand):
                 last_name='Principal',
                 email='admin@ejemplo.com'
             )
-            Profile.objects.create(
-                user=admin,
-                bio='Administrador del sistema',
-                telefono='0414-9999999',
-                nac=Profile.VENEZOLANO,
-                dni=99999999
-            )
+            profile, created = Profile.objects.get_or_create(user=admin)
+            profile.bio = 'Administrador del sistema'
+            profile.telefono = '0414-9999999'
+            profile.nac = Profile.VENEZOLANO
+            profile.dni = 99999999
+            profile.save()
             self.stdout.write(self.style.SUCCESS('Usuario administrador creado: admin'))
         else:
             self.stdout.write(self.style.WARNING('El usuario administrador ya existe'))
 
-        for i in range(1, 100):
+        for i in range(1, 10):
             username = f'usuario{i}'
             dni = 12345000 + i
             if not User.objects.filter(username=username).exists():
@@ -65,13 +64,12 @@ class Command(BaseCommand):
                     last_name=f'Apellido{i}',
                     email=f'usuario{i}@ejemplo.com'
                 )
-                Profile.objects.create(
-                    user=user,
-                    bio=f'Bio del usuario {i}',
-                    telefono=f'0414-00000{i}',
-                    nac=Profile.VENEZOLANO,
-                    dni=dni
-                )
+                profile, created = Profile.objects.get_or_create(user=user)
+                profile.bio = f'Bio del usuario {i}'
+                profile.telefono = f'0414-00000{i}'
+                profile.nac = Profile.VENEZOLANO
+                profile.dni = dni
+                profile.save()
                 self.stdout.write(self.style.SUCCESS(f'Usuario y perfil creados: {username}'))
             else:
                 self.stdout.write(self.style.WARNING(f'Usuario ya existe: {username}'))
