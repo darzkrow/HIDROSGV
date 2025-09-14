@@ -78,9 +78,9 @@ class Profile(models.Model):
 
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	bio = models.TextField(blank=True, null=True)
-	avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+	avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png', blank=True, null=True)
 	nac = models.CharField('Nacionalidad', max_length=1, choices=NAC_CHOICES)
-	dni = models.IntegerField('Cédula', unique=True, null=True, blank=True)
+	dni = models.CharField('Cédula', max_length=12, unique=True, null=True, blank=True)
 	telefono = models.CharField('Teléfono', max_length=15, blank=True, null=True)
 	must_change_password = models.BooleanField(default=False)
 	password_expires_at = models.DateTimeField('Expira contraseña', blank=True, null=True)
@@ -93,11 +93,6 @@ class Profile(models.Model):
 	def __str__(self):
 		return f"Perfil de {self.user.username} - {self.user.first_name} {self.user.last_name}"
 
-@receiver(post_save, sender=User)
-def create_profile_for_new_user(sender, instance, created, **kwargs):
-	if created:
-		# No asignar dni por defecto para evitar colisiones
-		Profile.objects.get_or_create(user=instance)
 
 class Departamento(models.Model):
     unidad = models.ForeignKey(UnidadOrganizativa, on_delete=models.CASCADE, related_name='departamentos')

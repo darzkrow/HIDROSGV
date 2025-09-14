@@ -1,41 +1,82 @@
+# Vista exclusiva para usuarios conectados
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+from django.contrib.auth.decorators import user_passes_test
+@user_passes_test(lambda u: u.is_superuser)
+def connected_users_view(request):
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_id_list = []
+    for session in active_sessions:
+        data = session.get_decoded()
+        uid = data.get('_auth_user_id')
+        if uid:
+            user_id_list.append(int(uid))
+    connected_users = User.objects.filter(id__in=user_id_list)
+    ip_map = {}
+    for u in connected_users:
+        ip_map[u.id] = getattr(u, 'last_login_ip', None)
+    return render(request, 'dashboard/admin/connected_users.html', {
+        'connected_users': connected_users,
+        'ip_map': ip_map,
+        'request': request,
+    })
 from django.contrib.auth import logout
-
-# Bloquear manualmente la sesión
-from django.contrib.auth.decorators import login_required
-def bloquear_sesion_view(request):
-	if request.user.is_authenticated:
-		logout(request)
-		request.session['session_blocked'] = True
-		return redirect('session_blocked')
-	return redirect('login')
 import random
 import string
 from django.urls import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponseForbidden
 from django.shortcuts import get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import AuthenticationForm
 from .forms import CustomUserCreationForm
 from django.contrib.auth.decorators import user_passes_test
-from dashboard.models import User
+from dashboard.models import User, Empresa, Profile,  UnidadOrganizativa, Departamento, Cargo
 from django.contrib.auth.models import Group, Permission
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import AuthenticationForm
-from .forms import CustomUserCreationForm
 from .models import Profile
-from dashboard.models import User
-from django.contrib.auth.decorators import user_passes_test
-from django.contrib.auth.models import Permission
-
-from django.http import HttpResponseForbidden
-
-
-
+from django.db import IntegrityError
 from django.shortcuts import redirect
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.decorators import user_passes_test
+from django.contrib.sessions.models import Session
+from django.utils import timezone
+from django.shortcuts import render, redirect
+from django.urls import reverse_lazy
+
+
+
+# Desconectar usuario específico (destruir sesión)
+from django.contrib.auth.decorators import login_required
+from django.contrib.sessions.models import Session
+def desconectar_usuario_view(request):
+    if not request.user.is_superuser:
+        return HttpResponseForbidden('Solo el administrador puede desconectar usuarios.')
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        if user_id:
+            # Buscar todas las sesiones activas de ese usuario
+            sessions = Session.objects.filter(expire_date__gte=timezone.now())
+            for session in sessions:
+                data = session.get_decoded()
+                if str(data.get('_auth_user_id')) == str(user_id):
+                    session.delete()
+            messages.success(request, 'Sesión del usuario desconectada correctamente.')
+        else:
+            # Si no se especifica usuario, desconectar todos menos el admin actual
+            sessions = Session.objects.filter(expire_date__gte=timezone.now())
+            for session in sessions:
+                data = session.get_decoded()
+                uid = str(data.get('_auth_user_id'))
+                if uid and uid != str(request.user.id):
+                    session.delete()
+            messages.success(request, 'Todas las sesiones de usuarios han sido desconectadas (excepto la tuya).')
+        return redirect('users_list')
+    return HttpResponseForbidden()
+
 
 # Resetear contraseña y obligar cambio al iniciar sesión
 @user_passes_test(lambda u: u.is_superuser)
@@ -63,39 +104,50 @@ def toggle_active_view(request, user_id):
 		user.save()
 		return HttpResponseRedirect(reverse('users_list'))
 	return HttpResponseForbidden()
-from django.contrib.auth.decorators import user_passes_test
 
 # Vista solo para administradores: lista de usuarios
 @user_passes_test(lambda u: u.is_superuser)
 def users_list_view(request):
-	from django.core.paginator import Paginator
-	users = User.objects.all().order_by('username')
-	grupos = Group.objects.all()
-	q = request.GET.get('q', '').strip()
-	group_id = request.GET.get('group')
-	page_number = request.GET.get('page', 1)
-	if q:
-		users = users.filter(
-			username__icontains=q
-		) | users.filter(
-			first_name__icontains=q
-		) | users.filter(
-			last_name__icontains=q
-		) | users.filter(
-			email__icontains=q
-		)
-	if group_id:
-		users = users.filter(groups__id=group_id)
-	cantidad = users.count()
-	paginator = Paginator(users, 10)
-	page_obj = paginator.get_page(page_number)
-	return render(request, 'dashboard/admin/users_list.html', {
-		'users': page_obj.object_list,
-		'cantidad': cantidad,
-		'grupos': grupos,
-		'request': request,
-		'page_obj': page_obj
-	})
+        from django.core.paginator import Paginator
+        from django.db.models import Q
+        users = User.objects.all().order_by('-is_active', 'username')
+        grupos = Group.objects.all()
+        q = request.GET.get('q', '').strip()
+        group_id = request.GET.get('group')
+        page_number = request.GET.get('page', 1)
+        # Obtener usuarios con sesión activa
+        active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+        user_id_list = []
+        for session in active_sessions:
+            data = session.get_decoded()
+            uid = data.get('_auth_user_id')
+            if uid:
+                user_id_list.append(int(uid))
+        connected_users = User.objects.filter(id__in=user_id_list)
+        ip_map = {}
+        for u in users:
+            ip_map[u.id] = getattr(u, 'last_login_ip', None)
+        if q:
+                    users = users.filter(
+                            Q(username__icontains=q) |
+                                Q(first_name__icontains=q) |
+                                Q(last_name__icontains=q) |
+                                Q(email__icontains=q) |
+                                Q(profile__dni__icontains=q)
+                    )
+        if group_id:
+            users = users.filter(groups__id=group_id)
+        cantidad = users.count()
+        paginator = Paginator(users, 8)
+        page_obj = paginator.get_page(page_number)
+        return render(request, 'dashboard/admin/users_list.html', {
+            'cantidad': cantidad,
+            'grupos': grupos,
+            'request': request,
+            'page_obj': page_obj,
+            'ip_map': ip_map,
+            'connected_users': connected_users
+        })
 
 @login_required
 def detalle_user_view(request, user_id=None):
@@ -108,14 +160,16 @@ def detalle_user_view(request, user_id=None):
         user = request.user
     profile, created = Profile.objects.get_or_create(user=user, defaults={"dni": 0})
     return render(request, 'dashboard/users/detalle_user.html', {'user': user, 'profile': profile})
-from django.shortcuts import render, redirect
+
 
 def session_blocked_view(request):
-	if request.user.is_authenticated:
-		return redirect('dashboard')
-	if request.method == 'POST':
-		return redirect('login')
-	return render(request, 'dashboard/users/session_blocked.html')
+    ip = request.META.get('REMOTE_ADDR')
+    if request.user.is_authenticated:
+        messages.error(request, 'Usted ya tiene una sesión abierta, por lo que no puede iniciar sesión nuevamente.')
+        return render(request, 'dashboard/users/session_blocked.html', {'ip': ip, 'user': request.user})
+    if request.method == 'POST':
+        return redirect('login')
+    return render(request, 'dashboard/users/session_blocked.html', {'ip': ip})
 
 def index_view(request):
 	if request.user.is_authenticated:
@@ -158,25 +212,47 @@ def create_group_view(request):
 # Vista solo para administradores para gestión de roles y permisos
 @user_passes_test(lambda u: u.is_superuser)
 def roles_permissions_view(request):
-
-	users = User.objects.all()
-	grupos = Group.objects.all()
-	permissions = Permission.objects.all()
-	message = None
-	if request.method == 'POST':
-		user_id = request.POST.get('user_id')
-		group_id = request.POST.get('group_id')
-		if user_id and group_id:
-			user = User.objects.get(id=user_id)
-			group = Group.objects.get(id=group_id)
-			user.groups.add(group)
-			message = f'Rol "{group.name}" asignado a {user.username}.'
-	return render(request, 'dashboard/admin/roles_permissions.html', {
-		'users': users,
-		'groups': grupos,
-		'permissions': permissions,
-		'message': message
-	})
+    users = User.objects.all()
+    grupos = Group.objects.all()
+    permissions = Permission.objects.all()
+    message = None
+    # Agrupar permisos por tipo (en español)
+    grouped_permissions = {
+        'Ver': [],
+        'Editar': [],
+        'Eliminar': [],
+        'Otro': []
+    }
+    for perm in permissions:
+        if 'view' in perm.codename:
+            grouped_permissions['Ver'].append(perm)
+        elif 'change' in perm.codename:
+            grouped_permissions['Editar'].append(perm)
+        elif 'delete' in perm.codename:
+            grouped_permissions['Eliminar'].append(perm)
+        else:
+            grouped_permissions['Otro'].append(perm)
+    tipo_map = {
+        'Ver': 'Ver',
+        'Editar': 'Editar',
+        'Eliminar': 'Eliminar',
+        'Otro': 'Otros'
+    }
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        group_id = request.POST.get('group_id')
+        if user_id and group_id:
+            user = User.objects.get(id=user_id)
+            group = Group.objects.get(id=group_id)
+            user.groups.add(group)
+            message = f'Rol "{group.name}" asignado a {user.username}.'
+    return render(request, 'dashboard/roles_permissions.html', {
+        'users': users,
+        'groups': grupos,
+        'grouped_permissions': grouped_permissions,
+        'tipo_map': tipo_map,
+        'message': message
+    })
 
 
 
@@ -210,7 +286,7 @@ def logout_view(request):
 	logout(request)
 	return redirect('login')
 
-from django.db import IntegrityError
+
 
 def register_view(request):
     if not request.user.is_superuser:
@@ -297,8 +373,34 @@ def login_view(request):
 
 @login_required
 def dashboard_view(request):
-	profile, created = Profile.objects.get_or_create(user=request.user)
-	return render(request, 'dashboard/dashboard.html', {'profile': profile})
+    from django.contrib.sessions.models import Session
+    from django.utils import timezone
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    users = User.objects.all()
+    activos = users.filter(is_active=True).count()
+    inactivos = users.filter(is_active=False).count()
+    bloqueados = users.filter(is_active=False).count()  # Si tienes un campo extra para bloqueados, cámbialo aquí
+    active_sessions = Session.objects.filter(expire_date__gte=timezone.now())
+    user_id_list = []
+    for session in active_sessions:
+        data = session.get_decoded()
+        uid = data.get('_auth_user_id')
+        if uid:
+            user_id_list.append(int(uid))
+    conectados = User.objects.filter(id__in=user_id_list).count()
+    last_login = request.user.last_login
+    ip = request.META.get('REMOTE_ADDR')
+    is_admin = request.user.is_superuser
+    return render(request, 'dashboard/dashboard.html', {
+        'profile': profile,
+        'activos': activos,
+        'inactivos': inactivos,
+        'bloqueados': inactivos,  # Si tienes campo bloqueado, cámbialo
+        'conectados': conectados,
+        'last_login': last_login,
+        'ip': ip,
+        'is_admin': is_admin,
+    })
 
 @login_required
 def edit_profile_view(request):
@@ -340,10 +442,7 @@ def edit_profile_view(request):
 			return redirect('dashboard')
 	return render(request, 'dashboard/users/edit_profile.html', {'profile': profile, 'user': user, 'groups': groups})
 
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
-from .models import Empresa, UnidadOrganizativa, Departamento, Cargo
-from django.urls import reverse_lazy
+
 
 class EmpresaListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Empresa
@@ -459,7 +558,6 @@ class CargoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     success_url = reverse_lazy('cargo_list')
     permission_required = 'dashboard.delete_cargo'
 
-from .models import Empresa
 
 def get_empresa():
     return Empresa.objects.first()
