@@ -1,0 +1,25 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Detalle de Unidad Organizativa{% endblock %}
+{% block titlecontent %}Detalle de Unidad Organizativa{% endblock %}
+{% block titlemenu %}Unidades{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info">
+                        <h3 class="card-title"><i class="fas fa-sitemap"></i> Datos de la unidad organizativa</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Empresa:</strong> {{ unidad.empresa.nombre }}</p>
+                        <p><strong>Prefijo:</strong> {{ unidad.prefijo }}</p>
+                        <p><strong>Nombre:</strong> {{ unidad.nombre }}</p>
+                        <p><strong>Descripción:</strong> {{ unidad.descripcion }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Detalle de Empresa{% endblock %}
+{% block titlecontent %}Detalle de Empresa{% endblock %}
+{% block titlemenu %}Empresas{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info">
+                        <h3 class="card-title"><i class="fas fa-building"></i> Datos de la empresa</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Nombre:</strong> {{ empresa.nombre }}</p>
+                        <p><strong>RIF:</strong> {{ empresa.rif }}</p>
+                        <p><strong>Título:</strong> {{ empresa.titulo }}</p>
+                        <p><strong>Dirección:</strong> {{ empresa.direccion }}</p>
+                        <p><strong>Teléfono:</strong> {{ empresa.telefono }}</p>
+                        <p><strong>Email:</strong> {{ empresa.email }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

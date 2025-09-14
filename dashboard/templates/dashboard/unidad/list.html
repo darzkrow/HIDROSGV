@@ -1,0 +1,72 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Unidades Organizativas{% endblock %}
+{% block titlecontent %}Unidades Organizativas{% endblock %}
+{% block titlemenu %}Unidades{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Lista de unidades organizativas</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Empresa</th>
+                                    <th>Prefijo</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for unidad in unidades %}
+                                <tr>
+                                    <td>{{ unidad.empresa.nombre }}</td>
+                                    <td>{{ unidad.prefijo }}</td>
+                                    <td>{{ unidad.nombre }}</td>
+                                    <td>
+                                        <a href="{% url 'unidad_update' unidad.pk %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                                        <form method="post" action="{% url 'unidad_delete' unidad.pk %}" style="display:inline;" class="unidad-delete-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Eliminar</button>
+                                        </form>
+{% block extra_js %}
+<script>
+document.querySelectorAll('.unidad-delete-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Eliminar unidad?',
+            text: 'Esta acción no se puede revertir.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4">No hay unidades registradas.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

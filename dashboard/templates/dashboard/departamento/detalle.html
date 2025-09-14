@@ -1,0 +1,24 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Detalle de Departamento{% endblock %}
+{% block titlecontent %}Detalle de Departamento{% endblock %}
+{% block titlemenu %}Departamentos{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info">
+                        <h3 class="card-title"><i class="fas fa-building-user"></i> Datos del departamento</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Unidad:</strong> {{ departamento.unidad.nombre }}</p>
+                        <p><strong>Nombre:</strong> {{ departamento.nombre }}</p>
+                        <p><strong>Descripción:</strong> {{ departamento.descripcion }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

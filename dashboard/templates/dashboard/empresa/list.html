@@ -1,0 +1,45 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Empresas{% endblock %}
+{% block titlecontent %}Empresas{% endblock %}
+{% block titlemenu %}Empresas{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Lista de empresas</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>RIF</th>
+                                    <th>Título</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for empresa in empresas %}
+                                <tr>
+                                    <td>{{ empresa.nombre }}</td>
+                                    <td>{{ empresa.rif }}</td>
+                                    <td>{{ empresa.titulo }}</td>
+                                    <td>
+                                        <a href="{% url 'empresa_update' empresa.pk %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4">No hay empresas registradas.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

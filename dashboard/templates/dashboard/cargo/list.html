@@ -1,0 +1,70 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Cargos{% endblock %}
+{% block titlecontent %}Cargos{% endblock %}
+{% block titlemenu %}Cargos{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Lista de cargos</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Departamento</th>
+                                    <th>Nombre</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cargo in cargos %}
+                                <tr>
+                                    <td>{{ cargo.departamento.nombre }}</td>
+                                    <td>{{ cargo.nombre }}</td>
+                                    <td>
+                                        <a href="{% url 'cargo_update' cargo.pk %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                                        <form method="post" action="{% url 'cargo_delete' cargo.pk %}" style="display:inline;" class="cargo-delete-form">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Eliminar</button>
+                                        </form>
+{% block extra_js %}
+<script>
+document.querySelectorAll('.cargo-delete-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Eliminar cargo?',
+            text: 'Esta acción no se puede revertir.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3">No hay cargos registrados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
