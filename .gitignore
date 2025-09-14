@@ -58,6 +58,19 @@ htmlcov/
 .tox/
 .nox/
 .coverage
+.pytest_cache/
+venv/
+static/
+dashboard/static/
+dashboard/migrations/
+dashboard/tests/
+*.sqlite3
+*.sqlite3-journal
+*.pyc
+*.pyo
+*.swp
+*.swo
+*.bak
 .coverage.*
 .cache
 nosetests.xml
@@ -259,7 +272,7 @@ poetry.toml
 
 # ruff
 .ruff_cache/
-
+AdminLTE-3.2.0/
 # LSP config files
 pyrightconfig.json
 

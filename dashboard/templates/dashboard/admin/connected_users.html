@@ -1,0 +1,37 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Usuarios conectados{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Usuarios conectados actualmente</h2>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Usuario</th>
+                <th>IP actual</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in connected_users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{% if ip_map.user.id %}{{ ip_map.user.id }}{% else %}-{% endif %}</td>
+                <td>
+                    {% if user.id != request.user.id %}
+                    <form method="post" action="{% url 'desconectar_usuario' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="user_id" value="{{ user.id }}">
+                        <button type="submit" class="btn btn-sm btn-dark" onclick="return confirm('¿Cerrar sesión de este usuario?');">Desconectar</button>
+                    </form>
+                    {% else %}
+                    <span class="text-muted">No puedes desconectarte a ti mismo aquí</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">No hay usuarios conectados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

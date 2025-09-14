@@ -1,0 +1,46 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Usuarios{% endblock %}
+{% block titlecontent %}Usuarios{% endblock %}
+{% block titlemenu %}Usuarios{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Lista de usuarios</h3>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Nombre completo</th>
+                                    <th>Email</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.get_full_name }}</td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        <a href="{% url 'detalle_user_id' user.id %}" class="btn btn-sm btn-info"><i class="fas fa-eye"></i> Ver</a>
+                                        <a href="{% url 'edit_profile' %}?user_id={{ user.id }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="4">No hay usuarios registrados.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

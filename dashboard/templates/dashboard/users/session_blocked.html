@@ -1,11 +1,34 @@
-{% extends 'dashboard/base.html' %}
-{% block content %}
-<div class="container mt-5 text-center">
-	<h2>Sesión bloqueada por inactividad</h2>
-	<p>Por motivos de seguridad, tu sesión ha sido cerrada por inactividad.</p>
-	<form method="post">
-		{% csrf_token %}
-		<button type="submit" class="btn btn-primary">Iniciar sesión nuevamente</button>
-	</form>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% load static %}
+  <title>{{ empresa_nombre }} | sesión bloqueada</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}">
+</head>
+<body class="hold-transition lockscreen">
+<div class="lockscreen-wrapper">
+  <div class="lockscreen-logo">
+    <a href="#"><b>{{ empresa_nombre }} </b>LTE</a>
+  </div>
+  <div class="lockscreen-name">
+    Sesión bloqueada por inactividad
+  </div>
+  <div class="lockscreen-item">
+    <div class="help-block text-center">
+      Por motivos de seguridad, tu sesión ha sido cerrada por inactividad.
+    </div>
+    <form method="post">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary mt-3">Iniciar sesión nuevamente</button>
+    </form>
+  </div>
+  <div class="lockscreen-footer text-center">
+    <small>IP actual: {{ ip }}</small>
+  </div>
 </div>
-{% endblock %}
+</body>
+</html>

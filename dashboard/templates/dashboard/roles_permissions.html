@@ -1,0 +1,64 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Roles y Permisos{% endblock %}
+{% block titlecontent %}Roles y Permisos{% endblock %}
+{% block titlemenu %}Administración{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <h3 class="card-title">Listado de Permisos por Tipo</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if message %}
+                        <div class="alert alert-success">{{ message }}</div>
+                        {% endif %}
+                        <div class="row">
+                            {% for tipo, perms in grouped_permissions.items %}
+                            <div class="col-md-3">
+                                <h5 class="text-info">
+                                    {% if tipo == 'Ver' %}Ver{% elif tipo == 'Editar' %}Editar{% elif tipo == 'Eliminar' %}Eliminar{% else %}Otros{% endif %}
+                                </h5>
+                                <ul class="list-group mb-3">
+                                    {% for perm in perms %}
+                                    <li class="list-group-item small">{{ perm.name }}</li>
+                                    {% empty %}
+                                    <li class="list-group-item text-muted">Sin permisos</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <hr>
+                        <h5 class="mt-4">Asignar Rol a Usuario</h5>
+                        <form method="post" class="row g-2">
+                            {% csrf_token %}
+                            <div class="col-md-4">
+                                <select name="user_id" class="form-control" required>
+                                    <option value="">Seleccione usuario</option>
+                                    {% for user in users %}
+                                    <option value="{{ user.id }}">{{ user.get_full_name }} ({{ user.username }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="group_id" class="form-control" required>
+                                    <option value="">Seleccione rol</option>
+                                    {% for group in groups %}
+                                    <option value="{{ group.id }}">{{ group.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-success">Asignar Rol</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

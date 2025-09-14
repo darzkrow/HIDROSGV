@@ -1,121 +1,217 @@
 {% extends 'dashboard/base.html' %}
 {% block title %}Usuarios registrados{% endblock %}
 {% block content %}
-        {% if messages %}
-            {% for message in messages %}
-                {% if forloop.first %}
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-                </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
-<div class="container mt-4">
+<div class="container-fluid mt-4">
+    {% if messages %}
+        {% for message in messages %}
+            {% if 'nueva_clave:' in message %}
+                <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Contraseña reseteada',
+                    html: `<div style="font-size:1.2em">Nueva clave: <b id='clave-copiable'>{{ message|cut:"nueva_clave:" }}</b><br><button class='btn btn-sm btn-outline-primary mt-2' onclick='copiarClave()'>Copiar clave</button></div>`,
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showCloseButton: false,
+                    confirmButtonText: 'OK',
+                    focusConfirm: true,
+                    didOpen: () => {
+                        window.copiarClave = function() {
+                            const clave = document.getElementById('clave-copiable').innerText;
+                            navigator.clipboard.writeText(clave);
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Clave copiada',
+                                text: 'La clave se ha copiado al portapapeles',
+                                timer: 1200,
+                                showConfirmButton: false
+                            });
+                        }
+                    },
+                    didRender: () => {
+                        // Hacer la alerta draggable
+                        const swalPopup = document.querySelector('.swal2-popup');
+                        if (swalPopup) {
+                            swalPopup.setAttribute('draggable', 'true');
+                            let offset = [0, 0];
+                            let isDown = false;
+                            swalPopup.addEventListener('mousedown', function(e) {
+                                isDown = true;
+                                offset = [
+                                    swalPopup.offsetLeft - e.clientX,
+                                    swalPopup.offsetTop - e.clientY
+                                ];
+                            }, true);
+                            document.addEventListener('mouseup', function() {
+                                isDown = false;
+                            }, true);
+                            document.addEventListener('mousemove', function(event) {
+                                event.preventDefault();
+                                if (isDown) {
+                                    swalPopup.style.left = (event.clientX + offset[0]) + 'px';
+                                    swalPopup.style.top = (event.clientY + offset[1]) + 'px';
+                                    swalPopup.style.position = 'fixed';
+                                }
+                            }, true);
+                        }
+                    }
+                });
+                </script>
+            {% else %}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
     <h2>Usuarios registrados</h2>
     <p><strong>Cantidad total:</strong> {{ cantidad }}</p>
-
-    <div class="mb-3">
-        <a href="{% url 'register' %}" class="btn btn-success">Registrar nuevo usuario</a>
+    <div class="d-flex mb-3 align-items-center gap-2">
+        <a href="{% url 'register' %}" class="btn btn-success">
+            <i class="fas fa-user-plus"></i>
+        </a>
+        <form method="get" class="d-flex" style="flex:1;">
+            <div class="input-group">
+                <input type="search" name="q" class="form-control" placeholder="Buscar usuario o DNI" value="{{ request.GET.q }}">
+                <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
+            </div>
+        </form>
     </div>
-    <form method="get" class="mb-3 row g-2">
-        <div class="col-md-3">
-            <input type="text" name="q" class="form-control" placeholder="Buscar por usuario, nombre o email" value="{{ request.GET.q }}">
-        </div>
-        <div class="col-md-3">
-            <select name="group" class="form-select">
-                <option value="">Todos los grupos</option>
-                {% for group in grupos %}
-                    <option value="{{ group.id }}" {% if request.GET.group == group.id|stringformat:'s' %}selected{% endif %}>{{ group.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary">Filtrar</button>
-        </div>
-        <div class="col-md-2">
-            <a href="{% url 'dashboard' %}" class="btn btn-secondary">Ir al dashboard</a>
-        </div>
-        <div class="col-md-2">
-            <a href="{% url 'index' %}" class="btn btn-outline-dark">Inicio</a>
-        </div>
-    </form>
 
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Usuario</th>
-                <th>Nombre completo</th>
-                <th>Email</th>
-                <th>Grupos</th>
-                <th>Acciones</th>
-                <th>Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.get_full_name }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                    {% for group in user.groups.all %}
-                        <span class="badge bg-info">{{ group.name }}</span>
-                    {% empty %}
-                        <span class="text-muted">Sin grupo</span>
-                    {% endfor %}
-                </td>
-                <td>
-                    <a href="{% url 'detalle_user_id' user.id %}" class="btn btn-sm btn-primary">Ver perfil</a>
-                    <a href="{% url 'edit_profile' %}?user_id={{ user.id }}" class="btn btn-sm btn-warning">Editar</a>
-                    <form method="post" action="{% url 'reset_password' user.id %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Seguro que deseas resetear la contraseña?');">Resetear contraseña</button>
-                    </form>
-                    <form method="post" action="{% url 'toggle_active' user.id %}" style="display:inline;">
-                        {% csrf_token %}
-                        {% if user.is_active %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('¿Deshabilitar usuario?');">Deshabilitar</button>
-                        {% else %}
-                            <button type="submit" class="btn btn-sm btn-outline-success" onclick="return confirm('¿Habilitar usuario?');">Habilitar</button>
-                        {% endif %}
-                    </form>
-                </td>
-                <td>
-                    {% if user.is_active %}
-                        <span class="badge bg-success">Activo</span>
-                    {% else %}
-                        <span class="badge bg-danger">Deshabilitado</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="table-responsive">
+       
+            <table class="table table-striped align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Cédula</th>
+                        <th>Nombre completo</th>
+                        <th>Correo</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                     
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in page_obj %}
+                    <tr>
+                        <td>{{ user.username }}</td>
+                        <td>{% if user.profile %}{{ user.profile.dni }}{% else %}-{% endif %}</td>
+                        <td>{{ user.first_name }} {{ user.last_name }}</td>
+                        <td>{{ user.email }}</td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Activo</span>
+                            {% else %}
+                                <span class="badge bg-danger">Inactivo</span>
+                            {% endif %}
+                        </td>
+                        <td class="d-flex gap-1">
+                            <a href="{% url 'detalle_user_id' user.id %}" class="btn btn-sm btn-info" title="Ver usuario"><i class="fas fa-eye"></i></a>
+                            {% if request.user.is_superuser %}
+                            <form method="post" action="{% url 'reset_password' user.id %}" style="display:inline;" class="reset-password-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger" title="Resetear contraseña">
+                                    <i class="fas fa-key"></i> Resetear
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'toggle_active' user.id %}" style="display:inline;" class="toggle-active-form">
+                                {% csrf_token %}
+                                {% if user.is_active %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Deshabilitar usuario">
+                                        <i class="fas fa-user-slash"></i> Deshabilitar
+                                    </button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-sm btn-outline-success" title="Habilitar usuario">
+                                        <i class="fas fa-user-check"></i> Habilitar
+                                    </button>
+                                {% endif %}
+                            </form>
+                            {% endif %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.querySelectorAll('.reset-password-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: '¡No podrás revertir este cambio!',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, resetear!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+                Swal.fire({
+                    title: '¡Contraseña reseteada!',
+                    text: 'La contraseña del usuario ha sido cambiada.',
+                    icon: 'success'
+                });
+            }
+        });
+    });
+});
+document.querySelectorAll('.toggle-active-form').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        let btn = form.querySelector('button');
+        let accion = btn.classList.contains('btn-outline-danger') ? 'deshabilitar' : 'habilitar';
+        Swal.fire({
+            title: `¿Seguro que deseas ${accion} este usuario?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: accion === 'deshabilitar' ? '#d33' : '#28a745',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
+                        </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center">No hay usuarios registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
     <nav aria-label="Paginación de usuarios">
         <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.group %}group={{ request.GET.group }}&{% endif %}page={{ page_obj.previous_page_number }}">Anterior</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled"><span class="page-link">Anterior</span></li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
             {% endif %}
             {% for num in page_obj.paginator.page_range %}
                 {% if page_obj.number == num %}
                     <li class="page-item active"><span class="page-link">{{ num }}</span></li>
-                {% else %}
-                    <li class="page-item"><a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.group %}group={{ request.GET.group }}&{% endif %}page={{ num }}">{{ num }}</a></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
                 {% endif %}
             {% endfor %}
             {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.group %}group={{ request.GET.group }}&{% endif %}page={{ page_obj.next_page_number }}">Siguiente</a>
-                </li>
-            {% else %}
-                <li class="page-item disabled"><span class="page-link">Siguiente</span></li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
             {% endif %}
         </ul>
     </nav>
 </div>
 {% endblock %}
+

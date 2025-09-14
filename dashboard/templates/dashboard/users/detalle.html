@@ -1,0 +1,28 @@
+{% extends 'dashboard/content.html' %}
+{% block title %}Detalle de Usuario{% endblock %}
+{% block titlecontent %}Detalle de Usuario{% endblock %}
+{% block titlemenu %}Usuarios{% endblock %}
+{% block content %}
+<div class="content">
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-info">
+                        <h3 class="card-title">Perfil de usuario</h3>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Usuario:</strong> {{ user.username }}</p>
+                        <p><strong>Nombre completo:</strong> {{ user.get_full_name }}</p>
+                        <p><strong>Email:</strong> {{ user.email }}</p>
+                        <p><strong>Grupos:</strong> {% for group in user.groups.all %}{{ group.name }} {% empty %}Sin grupo{% endfor %}</p>
+                        {% if profile.avatar %}
+                        <img src="{{ profile.avatar.url }}" class="img-thumbnail" width="120" alt="Avatar">
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
