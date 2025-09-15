@@ -33,6 +33,33 @@ class Command(BaseCommand):
         )
         self.stdout.write(self.style.SUCCESS(f'Unidades creadas: {unidad1}, {unidad2}'))
 
+        # Crear departamentos
+        from dashboard.models import Departamento, Cargo
+        departamento1, _ = Departamento.objects.get_or_create(
+            unidad=unidad1,
+            nombre='Contabilidad',
+            descripcion='Departamento de contabilidad'
+        )
+        departamento2, _ = Departamento.objects.get_or_create(
+            unidad=unidad2,
+            nombre='Sistemas',
+            descripcion='Departamento de sistemas'
+        )
+        self.stdout.write(self.style.SUCCESS(f'Departamentos creados: {departamento1}, {departamento2}'))
+
+        # Crear cargos
+        cargo1, _ = Cargo.objects.get_or_create(
+            departamento=departamento1,
+            nombre='Contador',
+            descripcion='Responsable de la contabilidad'
+        )
+        cargo2, _ = Cargo.objects.get_or_create(
+            departamento=departamento2,
+            nombre='Analista de Sistemas',
+            descripcion='Responsable de sistemas y soporte'
+        )
+        self.stdout.write(self.style.SUCCESS(f'Cargos creados: {cargo1}, {cargo2}'))
+
         # Crear usuarios y perfiles
         # Crear usuario administrador
         if not User.objects.filter(username='admin').exists():

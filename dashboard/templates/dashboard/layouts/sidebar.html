@@ -58,6 +58,32 @@
               <i class="right fas fa-angle-left"></i>
             </p>
           </a>
+      </li>
+
+      <!-- Sección Hidrológicas -->
+      <li class="nav-item has-treeview">
+        <a href="#" class="nav-link {% if 'hidrologica' in request.resolver_match.url_name %}active{% endif %}">
+          <i class="nav-icon fas fa-water"></i>
+          <p>
+            Hidrológicas
+            <i class="right fas fa-angle-left"></i>
+          </p>
+        </a>
+        <ul class="nav nav-treeview">
+          <li class="nav-item">
+            <a href="{% url 'hidrologica_list' %}" class="nav-link {% if request.resolver_match.url_name == 'hidrologica_list' %}active{% endif %}">
+              <i class="far fa-circle nav-icon"></i>
+              <p>Ver Hidrológicas</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'hidrologica_create' %}" class="nav-link {% if request.resolver_match.url_name == 'hidrologica_create' %}active{% endif %}">
+              <i class="far fa-plus-square nav-icon"></i>
+              <p>Agregar Hidrológica</p>
+            </a>
+          </li>
+        </ul>
+      </li>
         </li> 
 
         <li class="nav-item menu-open">

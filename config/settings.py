@@ -34,7 +34,8 @@ DJANGO_APPS = [
                ]
 
 LOCAL_APPS = [
-        'dashboard',
+    'dashboard',
+    'hidrologicas',
             ]
 
 THRID_APPS = [

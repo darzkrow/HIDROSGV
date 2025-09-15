@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from django.urls import path, include
 from .views import session_blocked_view
 from .views import (
     EmpresaListView, EmpresaCreateView, EmpresaUpdateView,
@@ -46,4 +47,5 @@ urlpatterns = [
     path('cargos/nuevo/', CargoCreateView.as_view(), name='cargo_create'),
     path('cargos/<int:pk>/editar/', CargoUpdateView.as_view(), name='cargo_update'),
     path('cargos/<int:pk>/eliminar/', CargoDeleteView.as_view(), name='cargo_delete'),
+    path('hidrologicas/', include('hidrologicas.urls')),
 ]

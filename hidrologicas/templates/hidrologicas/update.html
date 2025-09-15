@@ -1,0 +1,16 @@
+{% extends 'dashboard/content.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Editar Hidrológica{% endblock %}
+{% block titlecontent %}Editar Hidrológica{% endblock %}
+{% block titlemenu %}Editar Hidrológica{% endblock %}
+{% block content %}
+<div class="container py-4">
+    <h2>Editar Hidrológica</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form|crispy }}
+        <button type="submit" class="btn btn-primary">Actualizar</button>
+        <a href="{% url 'hidrologica_list' %}" class="btn btn-secondary">Volver</a>
+    </form>
+</div>
+{% endblock %}

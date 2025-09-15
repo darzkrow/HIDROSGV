@@ -1,0 +1,152 @@
+{% extends 'dashboard/content.html' %}
+{% load static %}
+{% block title %}Hidrológicas{% endblock %}
+{% block titlecontent %}Hidrológicas{% endblock %}
+{% block titlemenu %}Hidrológicas{% endblock %}
+{% block content %}
+
+    <style>
+        .card-hidrologica {
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            transition: box-shadow 0.2s;
+            min-width: 180px;
+            max-width: 220px;
+            margin: 0.5rem auto;
+        }
+        .card-hidrologica:hover {
+            box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+        }
+        .logo-circle {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0099f7;
+            background: #fff;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+        }
+        .latencia-label {
+            font-size: 0.85rem;
+            color: #555;
+            background: #f1f3f6;
+            border-radius: 8px;
+            padding: 2px 8px;
+            margin-top: 6px;
+            display: inline-block;
+        }
+        .card-footer {
+            border-top: 1px solid #eaeaea;
+            background: #f8f9fa;
+        }
+    </style>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            {% if filas %}
+                {% for fila in filas %}
+                    {% for h in fila %}
+                    <div class="col-lg-2 col-md-3 col-sm-4 col-6 d-flex align-items-stretch mb-3">
+                        <div class="card card-hidrologica w-100">
+                            <div class="card-body position-relative text-center">
+                                {% if h.estado_conexion == 'offline' %}
+                                    <span class="badge bg-danger position-absolute top-0 end-0 m-2">Offline</span>
+                                {% elif h.estado_conexion == 'online' %}
+                                        <span id="badge-estado-{{ h.id }}" class="badge bg-success position-absolute top-0 end-0 m-2">Online</span>
+                                {% endif %}
+                                {% if h.logo %}
+                                    <img src="{{ h.logo.url }}" alt="Logo {{ h.nombre_delhidrologica }}" class="logo-circle">
+                                {% else %}
+                                    <img src="{% static 'img/logo.png' %}" alt="Logo por defecto" class="logo-circle">
+                                {% endif %}
+                                <div class="mt-2 mb-1">
+                                    <button onclick="window.open('{{ h.url }}', '_blank')" class="btn btn-sm btn-primary" style="font-size:0.85rem;">
+                                        <i class="fas fa-external-link-alt"></i> Abrir sitio
+                                    </button>
+                                </div>
+                                    {% if h.latencia_ms %}
+                                        <span id="latencia-label-{{ h.id }}" class="latencia-label" {% if not h.latencia_ms %}style="display:none;"{% endif %}>
+                                            {% if h.latencia_ms %}<i class="fas fa-tachometer-alt"></i> {{ h.latencia_ms }} ms{% endif %}
+                                        </span>
+                                {% endif %}
+                            </div>
+                            <div class="card-footer text-center">
+                                <a href="{% url 'hidrologica_detail' h.id %}" class="btn btn-outline-info btn-sm mx-1" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if es_admin %}
+                                    <a href="{% url 'hidrologica_update' h.id %}" class="btn btn-outline-primary btn-sm mx-1" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'hidrologica_delete' h.id %}" class="btn btn-outline-danger btn-sm mx-1" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            {% else %}
+                <div class="text-center w-100">
+                    <p>No hay hidrológicas registradas.</p>
+                    <a href="{% url 'gerente_create' %}" class="btn btn-warning">Registrar Gerente Comercial</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+        {% if es_admin %}
+        <div class="row">
+            <div class="col text-center">
+                <a href="{% url 'hidrologica_create' %}" class="btn btn-success">Registrar Nueva Hidrológica</a>
+            </div>
+        </div>
+        {% endif %}
+{% endblock %}
+{% block extra_js %}
+<script>
+function fadeUpdate(element, newContent, newClass) {
+    element.style.transition = 'opacity 0.4s';
+    element.style.opacity = 0.2;
+    setTimeout(() => {
+        if (newClass) element.className = newClass;
+        element.innerHTML = newContent;
+        element.style.opacity = 1;
+    }, 400);
+}
+
+function updateBadges() {
+    fetch('/hidrologicas/api/status/')
+        .then(response => response.json())
+        .then(data => {
+            data.hidrologicas.forEach(h => {
+                // Badge
+                const badge = document.querySelector(`#badge-estado-${h.id}`);
+                if (badge) {
+                    let newClass, newText;
+                    if (h.estado_conexion === 'online') {
+                        newClass = 'badge bg-success position-absolute top-0 end-0 m-2';
+                        newText = 'Online';
+                    } else {
+                        newClass = 'badge bg-danger position-absolute top-0 end-0 m-2';
+                        newText = 'Offline';
+                    }
+                    fadeUpdate(badge, newText, newClass);
+                }
+                // Latencia
+                const latencia = document.querySelector(`#latencia-label-${h.id}`);
+                if (latencia) {
+                    if (h.latencia_ms) {
+                        fadeUpdate(latencia, `<i class='fas fa-tachometer-alt'></i> ${h.latencia_ms} ms`);
+                        latencia.style.display = 'inline-block';
+                    } else {
+                        latencia.style.display = 'none';
+                    }
+                }
+            });
+        });
+}
+setInterval(updateBadges, 10000);
+document.addEventListener('DOMContentLoaded', updateBadges);
+</script>
+{% endblock %}
