@@ -97,7 +97,7 @@ def reset_password_view(request, user_id):
     profile.must_change_password = True
     profile.save()
     
-    messages.success(request, f'Contraseña reseteada: {new_password}')
+    messages.success(request, f'Contraseña reseteada para {user.username}: {new_password}')
     return redirect('users_list')
 
 
