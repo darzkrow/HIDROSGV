@@ -127,3 +127,11 @@ class Cargo(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.departamento.nombre})"
+
+
+# Crear automáticamente un Profile cuando se crea un User
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+	if created:
+		# Crear perfil sin asignar un dni por defecto para evitar colisiones
+		Profile.objects.create(user=instance)
