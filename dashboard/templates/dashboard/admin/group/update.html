@@ -1,0 +1,22 @@
+{% extends 'dashboard/base.html' %}
+{% block title %}Editar Grupo{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="card-header"><h3 class="card-title">Editar Grupo</h3></div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+                            {% if form %}
+                                {% if form_is_crispy %}
+                                    {% load crispy_forms_tags %}
+                                    {{ form|crispy }}
+                                {% else %}
+                                    {{ form.as_p }}
+                                {% endif %}
+                            {% endif %}
+            <button type="submit" class="btn btn-success">Guardar</button>
+            <a href="{% url 'group_list' %}" class="btn btn-secondary">Cancelar</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
