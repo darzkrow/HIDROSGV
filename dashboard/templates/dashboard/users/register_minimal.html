@@ -4,20 +4,41 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ empresa_nombre}} | Registro</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>body{padding:20px;background:#f7f7f9}</style>
 </head>
 <body>
-    <h2>Registro de usuario</h2>
-    {% if messages %}
-        <ul>
-        {% for m in messages %}
-            <li>{{ m }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Registrar</button>
-    </form>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">Registro de usuario</div>
+                    <div class="card-body">
+                        {% if messages %}
+                            <div class="mb-3">
+                            {% for m in messages %}
+                                <div class="alert alert-info">{{ m }}</div>
+                            {% endfor %}
+                            </div>
+                        {% endif %}
+                        <form method="post">
+                            {% csrf_token %}
+                            {% for field in form.visible_fields %}
+                                {% if field.name not in "password1 password2 password" %}
+                                    <div class="mb-3">
+                                        {{ field.label_tag }}
+                                        {{ field }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                            <div class="d-flex justify-content-end">
+                                <button type="submit" class="btn btn-primary">Registrar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
