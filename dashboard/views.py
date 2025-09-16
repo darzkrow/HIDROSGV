@@ -353,7 +353,7 @@ def register_view(request):
                 profile.password_expires_at = timezone.now() + timedelta(days=30)
                 profile.save()
                 
-                messages.success(request, f'Usuario registrado. Contraseña temporal: {new_password}')
+                messages.success(request, f'Usuario {user.username} registrado. Contraseña temporal: {new_password}')
                 return redirect('users_list')
             except IntegrityError:
                 user.delete()
@@ -361,6 +361,14 @@ def register_view(request):
         else:
             # Fallback para tests: si no hay errores de duplicados, intentar crear usuario
             dup_errors = any(field in form.errors for field in ('dni', 'email', 'username'))
+            # Si hay errores de duplicados, añadir mensajes claros para la UI/tests
+            if 'dni' in form.errors:
+                messages.error(request, 'Ya existe un usuario con esa cédula')
+            if 'email' in form.errors:
+                messages.error(request, 'Ya existe un usuario con ese correo electrónico')
+            if 'username' in form.errors:
+                messages.error(request, 'Ya existe un usuario con ese nombre de usuario')
+
             if not dup_errors:
                 try:
                     user = User(
@@ -387,7 +395,7 @@ def register_view(request):
                     profile.password_expires_at = timezone.now() + timedelta(days=30)
                     profile.save()
                     
-                    messages.success(request, f'Usuario registrado. Contraseña temporal: {new_password}')
+                    messages.success(request, f'Usuario {user.username} registrado. Contraseña temporal: {new_password}')
                     return redirect('users_list')
                 except Exception:
                     pass
