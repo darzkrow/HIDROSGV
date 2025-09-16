@@ -3,6 +3,12 @@ from django.contrib.auth.forms import UserCreationForm
 from dashboard.models import User
 from .models import Profile
 from django.db import transaction, IntegrityError
+from django.contrib.auth.models import Group, Permission
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Field, Submit
+
+
+
 
 class CustomUserCreationForm(forms.ModelForm):
     dni = forms.CharField(label='Cédula', max_length=12, required=True)
@@ -65,3 +71,100 @@ class CustomUserCreationForm(forms.ModelForm):
                 user.delete()
                 return None
         return user
+
+
+class GroupForm(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if FormHelper:
+            self.helper = FormHelper()
+            self.helper.form_method = 'post'
+            self.helper.add_input(Submit('submit', 'Guardar'))
+
+
+class GroupPermissionsForm(forms.Form):
+    permissions = forms.ModelMultipleChoiceField(
+        queryset=Permission.objects.all().order_by('content_type__app_label', 'codename'),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Permisos'
+    )
+
+    def __init__(self, *args, **kwargs):
+        initial = kwargs.pop('initial', None) or {}
+        super().__init__(*args, **kwargs)
+        if 'permissions' in initial:
+            self.fields['permissions'].initial = initial['permissions']
+        if FormHelper:
+            self.helper = FormHelper()
+            self.helper.form_method = 'post'
+            self.helper.layout = Layout(
+                Field('permissions')
+            )
+            self.helper.add_input(Submit('submit', 'Guardar permisos'))
+
+
+class UserForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'first_name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'last_name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'id': 'email'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if FormHelper:
+            self.helper = FormHelper()
+            self.helper.form_method = 'post'
+            self.helper.add_input(Submit('submit', 'Guardar'))
+
+
+
+
+class ProfileForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['telefono', 'nac', 'dni', 'bio', 'avatar']
+        widgets = {
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'id': 'telefono'}),
+            'nac': forms.Select(attrs={'class': 'form-control', 'id': 'nac'}), 
+            'dni': forms.TextInput(attrs={'class': 'form-control', 'id': 'dni'}),
+            'avatar': forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'avatar', 'accept': 'image/*'}),
+            'bio': forms.Textarea(attrs={'class': 'form-control', 'id': 'bio', 'rows': 6}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        self.helper = FormHelper()
+        self.helper.form_method = 'post'
+        self.helper.form_enctype = 'multipart/form-data'  # Importante para subir archivos
+        self.helper.layout = Layout(
+            Field('telefono'),
+            Field('nac'),
+            Field('dni'),
+            Field('bio'),
+            Field('avatar'),
+            Submit('submit', 'Guardar cambios', css_class='btn btn-primary mt-3')
+        )
+
+    def clean_avatar(self):
+        avatar = self.cleaned_data.get('avatar')
+        if not avatar:
+            return avatar
+        # Validate content type
+        content_type = avatar.content_type
+        if not content_type.startswith('image/'):
+            raise forms.ValidationError('El archivo debe ser una imagen (jpg, png, gif).')
+        # Validate file size (max 2MB)
+        max_size = 2 * 1024 * 1024
+        if avatar.size > max_size:
+            raise forms.ValidationError('El tamaño máximo permitido es 2MB.')
+        return avatar
