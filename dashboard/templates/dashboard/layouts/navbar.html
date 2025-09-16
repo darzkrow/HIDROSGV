@@ -25,7 +25,7 @@
           {% if request.user.profile.avatar  %}
                   <img class="user-image" src="{{ request.user.profile.avatar.url  }}" alt="Fotografía" />
                 {% else %}
-                <img src="{% static 'img/def.png' %}"class="user-image" alt="User Image" />
+                <img src="{% static 'avatars/default.jpg' %}" class="user-image" alt="User Image" />
                 {% endif %}
    
 {% comment %}   
@@ -40,19 +40,18 @@
       
       <li class="user-footer">
        <div class="nav-item d-none d-sm-inline-block">
-        <a href="" class="btn btn-default btn-flat">Profile</a>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'detalle_user_id' request.user.id %}" class="btn btn-default btn-flat">Mi perfil</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="btn btn-default btn-flat">Iniciar sesión</a>
+        {% endif %}
         </div>
         <div class="nav-item d-none d-sm-inline-block">
-
-        
-          {% if user.is_authenticated %}
-          <a href="{% url 'logout' %}" class="btn btn-default btn-flat mr-auto">Cerrar sesión</a>
-      {% else %}
-          <a href="{% url 'login' %}">Iniciar sesión</a>
-      {% endif %}
-        
+          {% if request.user.is_authenticated %}
+            <a href="{% url 'logout' %}" class="btn btn-default btn-flat mr-auto">Cerrar sesión</a>
+          {% endif %}
         </div>
-        </li>
+      </li>
         </ul>
         
 

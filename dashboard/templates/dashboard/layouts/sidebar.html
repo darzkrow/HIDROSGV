@@ -26,7 +26,7 @@
         />
         {% else %}
         <img
-          src="{% static 'img/def.png' %}"
+          src="{% static 'avatars/default.jpg' %}"
           class="img-circle elevation-2"
           alt="User Image"
         />
@@ -137,6 +137,36 @@
                 <i class="fas fa-user-cog nav-icon"></i>
                 <p>Roles y Permisos</p>
               </a>
+            </li>
+            <!-- Roles/Groups submenu -->
+            <li class="nav-item has-treeview">
+              <a href="#" class="nav-link {% if 'group' in request.resolver_match.url_name or request.resolver_match.url_name == 'roles_permissions' %}active{% endif %}">
+                <i class="fas fa-users-cog nav-icon"></i>
+                <p>
+                  Gestión de Roles
+                  <i class="right fas fa-angle-left"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="{% url 'group_list' %}" class="nav-link {% if request.resolver_match.url_name == 'group_list' %}active{% endif %}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Listar Roles</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'group_create' %}" class="nav-link {% if request.resolver_match.url_name == 'group_create' %}active{% endif %}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Crear Rol</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{% url 'roles_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'roles_permissions' %}active{% endif %}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Asignar Permisos</p>
+                  </a>
+                </li>
+              </ul>
             </li>
             {% endif %}
           </ul>

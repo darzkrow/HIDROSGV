@@ -1,20 +1,161 @@
 {% extends 'dashboard/base.html' %}
-{% block title %}Detalle de Usuario{% endblock %}
+{% load static %}
+{% block title %}Perfil de {{ user.username }}{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2>Detalle de Usuario</h2>
-    <div class="card mb-3">
-        <div class="card-body">
-            <h5 class="card-title">{{ user.get_full_name }} ({{ user.username }})</h5>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>DNI:</strong> {{ profile.dni }}</p>
-            <p><strong>Biografía:</strong> {{ profile.bio }}</p>
-            {% if profile.avatar %}
-                <img src="{{ profile.avatar.url }}" class="img-thumbnail" width="120" alt="Avatar">
-            {% endif %}
+<div class="container mt-3">
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card card-primary card-outline">
+        <div class="card-body box-profile text-center">
+          {% if profile and profile.avatar %}
+            <img class="profile-user-img img-fluid img-circle" src="{{ profile.avatar.url }}" alt="Imagen de perfil de {{ user.username }}">
+            {% else %}
+            <img class="profile-user-img img-fluid img-circle" src="{% static 'avatars/default.jpg' %}" alt="Imagen de perfil por defecto">
+          {% endif %}
+          <h3 class="profile-username text-center mt-3">{{ user.get_full_name|default:user.username }}</h3>
+          <p class="text-muted text-center">@{{ user.username }}</p>
+
+          <ul class="list-group list-group-unbordered mb-3">
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><b>Email</b></span>
+              <span>{{ user.email|default:'-' }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><b>Cédula</b></span>
+              <span>{% if profile %}{{ profile.dni|default:'-' }}{% else %}-{% endif %}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span><b>Teléfono</b></span>
+              <span>{% if profile %}{{ profile.telefono|default:'-' }}{% else %}-{% endif %}</span>
+            </li>
+          </ul>
+          <a href="{% url 'edit_profile' %}" class="btn btn-primary btn-block"><b>Editar Perfil</b></a>
+          <a href="{% url 'change_password' %}" class="btn btn-outline-secondary btn-block mt-2">Cambiar Contraseña</a>
         </div>
+      </div>
+
+      <div class="card card-primary">
+        <div class="card-header">
+          <h3 class="card-title">Sobre</h3>
+        </div>
+        <div class="card-body">
+          <strong><i class="fas fa-book mr-1"></i> Nacionalidad</strong>
+          <p class="text-muted">{% if profile %}{{ profile.get_nac_display|default:profile.nac|default:'-' }}{% else %}-{% endif %}</p>
+          <hr>
+          <strong><i class="fas fa-user-shield mr-1"></i> Cambiar contraseña</strong>
+          <p class="text-muted">{% if profile and profile.must_change_password %}
+            <span class="badge badge-warning">Requerido</span>
+            {% else %}No requerido{% endif %}</p>
+          <hr>
+          <strong><i class="fas fa-calendar-alt mr-1"></i> Fecha expiración</strong>
+          <p class="text-muted">{% if profile %}{{ profile.password_expires_at|date:'d/m/Y H:i'|default:'-' }}{% else %}-{% endif %}</p>
+        </div>
+      </div>
     </div>
-    <a href="{% url 'edit_profile' %}" class="btn btn-primary">Editar perfil</a>
-    <a href="{% url 'dashboard' %}" class="btn btn-secondary">Volver al dashboard</a>
+
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header p-2">
+          <ul class="nav nav-pills">
+            <li class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Actividad</a></li>
+            <li class="nav-item"><a class="nav-link" href="#timeline" data-toggle="tab">Timeline</a></li>
+            <li class="nav-item"><a class="nav-link" href="#settings" data-toggle="tab">Ajustes</a></li>
+          </ul>
+        </div>
+        <div class="card-body">
+          <div class="tab-content">
+            <div class="active tab-pane" id="activity">
+              <div class="post">
+                <div class="user-block d-flex align-items-center">
+                  <div class="me-3">
+                    {% if profile and profile.avatar %}
+                      <img class="img-circle img-bordered-sm" src="{{ profile.avatar.url }}" alt="user image" width="48" height="48">
+                    {% else %}
+                      <img class="img-circle img-bordered-sm" src="{% static 'avatars/default.jpg' %}" alt="user image" width="48" height="48">
+                    {% endif %}
+                  </div>
+                  <div>
+                    <span class="username d-block"><a href="#">{{ user.get_full_name|default:user.username }}</a></span>
+                    <span class="description d-block">Miembro desde {{ user.date_joined|date:'d/m/Y' }}</span>
+                  </div>
+                </div>
+                <p class="mt-2">Perfil de usuario en el sistema. Aquí puedes agregar actividad reciente o notas administrativas.</p>
+              </div>
+            </div>
+
+            <div class="tab-pane" id="timeline">
+              <div class="timeline timeline-inverse">
+                {% if log_entries and log_entries.exists %}
+                  {% for entry in log_entries %}
+                    <div class="time-label">
+                      <span class="bg-secondary">{{ entry.action_time|date:'d M Y H:i' }}</span>
+                    </div>
+                    <div>
+                      {% if entry.action_flag == 1 %}
+                        <i class="fas fa-plus bg-success"></i>
+                      {% elif entry.action_flag == 2 %}
+                        <i class="fas fa-edit bg-primary"></i>
+                      {% elif entry.action_flag == 3 %}
+                        <i class="fas fa-trash bg-danger"></i>
+                      {% else %}
+                        <i class="fas fa-info bg-info"></i>
+                      {% endif %}
+                      <div class="timeline-item">
+                        <h3 class="timeline-header"><a href="#">{{ entry.get_change_message }}</a></h3>
+                        <div class="timeline-body">
+                          <strong>Actor:</strong> {{ entry.user }}
+                          <br>
+                          <strong>Objeto:</strong> {{ entry.object_repr }}
+                        </div>
+                      </div>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="time-label"><span class="bg-danger">{{ user.date_joined|date:'d M Y' }}</span></div>
+                  <div>
+                    <i class="fas fa-user bg-primary"></i>
+                    <div class="timeline-item">
+                      <h3 class="timeline-header"><a href="#">Cuenta creada</a></h3>
+                      <div class="timeline-body">Usuario {{ user.username }} creado en el sistema.</div>
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="tab-pane" id="settings">
+              <form class="form-horizontal" method="post" action="{% url 'edit_profile' %}">
+                {% csrf_token %}
+                <div class="form-group row">
+                  <label for="inputName" class="col-sm-2 col-form-label">Nombre</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputName" name="first_name" value="{{ user.first_name }}">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="inputLastName" class="col-sm-2 col-form-label">Apellido</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" id="inputLastName" name="last_name" value="{{ user.last_name }}">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="inputEmail" class="col-sm-2 col-form-label">Email</label>
+                  <div class="col-sm-10">
+                    <input type="email" class="form-control" id="inputEmail" name="email" value="{{ user.email }}">
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <div class="offset-sm-2 col-sm-10">
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
