@@ -48,4 +48,9 @@ urlpatterns = [
     path('cargos/<int:pk>/editar/', CargoUpdateView.as_view(), name='cargo_update'),
     path('cargos/<int:pk>/eliminar/', CargoDeleteView.as_view(), name='cargo_delete'),
     path('hidrologicas/', include('hidrologicas.urls')),
+    # Group CRUD
+    path('groups/', views.GroupListView.as_view(), name='group_list'),
+    path('groups/nuevo/', views.GroupCreateView.as_view(), name='group_create'),
+    path('groups/<int:pk>/editar/', views.GroupUpdateView.as_view(), name='group_update'),
+    path('groups/<int:pk>/eliminar/', views.GroupDeleteView.as_view(), name='group_delete'),
 ]

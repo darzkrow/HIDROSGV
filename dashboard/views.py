@@ -27,9 +27,11 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView
 from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
+from django.contrib.admin.models import LogEntry
 
 # Local imports
-from .forms import CustomUserCreationForm
+from .forms import CustomUserCreationForm, UserForm, ProfileForm
 from .models import (
     User, Empresa, Profile, UnidadOrganizativa,
     Departamento, Cargo,
@@ -169,9 +171,12 @@ def detalle_user_view(request, user_id=None):
         user = request.user
     
     profile, created = Profile.objects.get_or_create(user=user)
+    # Obtener entradas de auditoría (LogEntry) relacionadas con este usuario
+    log_entries = LogEntry.objects.filter(object_id=str(user.id)).order_by('-action_time')
     return render(request, 'dashboard/users/detalle_user.html', {
-        'user': user, 
-        'profile': profile
+        'user': user,
+        'profile': profile,
+        'log_entries': log_entries,
     })
 
 
@@ -523,45 +528,44 @@ def edit_profile_view(request):
     profile, created = Profile.objects.get_or_create(user=user)
     
     if request.method == 'POST':
-        email = request.POST.get('email')
-        if User.objects.filter(email=email).exclude(id=user.id).exists():
-            messages.error(request, 'Ya existe un usuario con ese correo electrónico.')
+        user_form = UserForm(request.POST, instance=user)
+        profile_form = ProfileForm(request.POST, request.FILES, instance=profile)
+        if user_form.is_valid() and profile_form.is_valid():
+            # Check unique email manually
+            email = user_form.cleaned_data.get('email')
+            if User.objects.filter(email=email).exclude(id=user.id).exists():
+                messages.error(request, 'Ya existe un usuario con ese correo electrónico.')
+            else:
+                user_form.save()
+                profile = profile_form.save(commit=False)
+                if not profile.nac:
+                    profile.nac = Profile.VENEZOLANO
+                profile.save()
+
+                # Asignar grupo/rol si es admin
+                if request.user.is_superuser:
+                    group_id = request.POST.get('groups')
+                    if group_id:
+                        group = get_object_or_404(Group, id=group_id)
+                        user.groups.clear()
+                        user.groups.add(group)
+
+                if request.user.is_superuser and user_id:
+                    return redirect('users_list')
+                return redirect('dashboard')
         else:
-            user.first_name = request.POST.get('first_name')
-            user.last_name = request.POST.get('last_name')
-            user.email = email
-            
-            profile.telefono = request.POST.get('telefono')
-            profile.nac = request.POST.get('nac')
-            dni = request.POST.get('dni')
-            if dni:
-                # Guardar DNI como string para preservar formatos y evitar ValueError
-                profile.dni = dni.strip()
-            profile.bio = request.POST.get('bio')
-            
-            avatar = request.FILES.get('avatar')
-            if avatar:
-                profile.avatar = avatar
-            
-            user.save()
-            profile.save()
-            
-            # Asignar grupo/rol si es admin
-            if request.user.is_superuser:
-                group_id = request.POST.get('groups')
-                if group_id:
-                    group = get_object_or_404(Group, id=group_id)
-                    user.groups.clear()
-                    user.groups.add(group)
-            
-            if request.user.is_superuser and user_id:
-                return redirect('users_list')
-            return redirect('dashboard')
-    
+            # Forms invalid: fallthrough to render with errors
+            pass
+    else:
+        user_form = UserForm(instance=user)
+        profile_form = ProfileForm(instance=profile)
+
     return render(request, 'dashboard/users/edit_profile.html', {
-        'profile': profile, 
-        'user': user, 
-        'groups': groups
+        'profile': profile,
+        'user': user,
+        'groups': groups,
+        'user_form': user_form,
+        'profile_form': profile_form,
     })
 
 
@@ -698,3 +702,69 @@ class CargoDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
 def get_empresa():
     return Empresa.objects.first()
+
+
+# CRUD de Grupos (Roles) para administradores
+@method_decorator(user_passes_test(lambda u: u.is_superuser), name='dispatch')
+class GroupListView(LoginRequiredMixin, ListView):
+    model = Group
+    template_name = 'dashboard/admin/group/list.html'
+    context_object_name = 'groups'
+
+
+@method_decorator(user_passes_test(lambda u: u.is_superuser), name='dispatch')
+class GroupCreateView(LoginRequiredMixin, CreateView):
+    model = Group
+    fields = ['name', 'permissions']
+    template_name = 'dashboard/admin/group/create.html'
+    success_url = reverse_lazy('group_list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Grupo "{self.object.name}" creado correctamente.')
+        return response
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        try:
+            import crispy_forms
+            ctx['form_is_crispy'] = True
+        except Exception:
+            ctx['form_is_crispy'] = False
+        return ctx
+
+
+@method_decorator(user_passes_test(lambda u: u.is_superuser), name='dispatch')
+class GroupUpdateView(LoginRequiredMixin, UpdateView):
+    model = Group
+    fields = ['name', 'permissions']
+    template_name = 'dashboard/admin/group/update.html'
+    success_url = reverse_lazy('group_list')
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        messages.success(self.request, f'Grupo "{self.object.name}" actualizado correctamente.')
+        return response
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        try:
+            import crispy_forms
+            ctx['form_is_crispy'] = True
+        except Exception:
+            ctx['form_is_crispy'] = False
+        return ctx
+
+
+@method_decorator(user_passes_test(lambda u: u.is_superuser), name='dispatch')
+class GroupDeleteView(LoginRequiredMixin, DeleteView):
+    model = Group
+    template_name = 'dashboard/admin/group/delete.html'
+    success_url = reverse_lazy('group_list')
+
+    def delete(self, request, *args, **kwargs):
+        obj = self.get_object()
+        name = obj.name
+        response = super().delete(request, *args, **kwargs)
+        messages.success(request, f'Grupo "{name}" eliminado correctamente.')
+        return response

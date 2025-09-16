@@ -78,7 +78,7 @@ class Profile(models.Model):
 
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	bio = models.TextField(blank=True, null=True)
-	avatar = models.ImageField(upload_to='avatars/', default='avatars/default.png', blank=True, null=True)
+	avatar = models.ImageField(upload_to='avatars/', default='avatars/default.jpg', blank=True, null=True)
 	nac = models.CharField('Nacionalidad', max_length=1, choices=NAC_CHOICES)
 	dni = models.CharField('Cédula', max_length=12, unique=True, null=True, blank=True)
 	telefono = models.CharField('Teléfono', max_length=15, blank=True, null=True)
@@ -133,5 +133,5 @@ class Cargo(models.Model):
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
 	if created:
-		# Crear perfil sin asignar un dni por defecto para evitar colisiones
-		Profile.objects.create(user=instance)
+		# Crear perfil con nacionalidad por defecto para evitar NOT NULL
+		Profile.objects.create(user=instance, nac=Profile.VENEZOLANO)

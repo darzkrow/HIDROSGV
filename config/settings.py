@@ -163,10 +163,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 # Siempre usar rutas absolutas para producción
-STATIC_URL = '/static/'
-STATIC_ROOT = '/var/www/html/staticfiles/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = '/var/www/html/media/'
+STATIC_URL = 'static/'
+STATIC_ROOT = 'static/'
+MEDIA_URL = 'media/'
+MEDIA_ROOT = 'media/'
 
 # Archivos estáticos
 
