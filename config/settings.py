@@ -1,3 +1,5 @@
+# Forzar cierre de sesión tras 1 hora (3600 segundos)
+SESSION_COOKIE_AGE = 3600
 # Modelo de usuario personalizado
 AUTH_USER_MODEL = 'dashboard.User'
 from pathlib import Path
@@ -20,7 +22,13 @@ SECRET_KEY = env('SECRET_KEY')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1','localhost'])
+
+# Permitir hosts locales y dominio público
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1','localhost','gestioncomercial.hidroven.gob.ve'])
+
+# Configuración para recibir la IP real detrás de Nginx/proxy
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Application definition
 
@@ -154,10 +162,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = env('STATIC_URL', default='/static/')
-STATIC_ROOT = env('STATIC_ROOT', default=os.path.join(BASE_DIR, 'staticfiles'))
-MEDIA_URL = env('MEDIA_URL', default='/media/')
-MEDIA_ROOT = env('MEDIA_ROOT', default=os.path.join(BASE_DIR, 'media'))
+# Siempre usar rutas absolutas para producción
+STATIC_URL = '/static/'
+STATIC_ROOT = '/var/www/html/staticfiles/'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/var/www/html/media/'
 
 # Archivos estáticos
 

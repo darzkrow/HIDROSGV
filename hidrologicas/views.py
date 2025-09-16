@@ -39,7 +39,9 @@ def hidrologica_list(request):
     filas = [hidrologicas[i:i+5] for i in range(0, len(hidrologicas), 5)]
     user = request.user
     es_admin = user.is_superuser or user.groups.filter(name__in=['Administrador-IT','Supervisor']).exists()
-    return render(request, 'hidrologicas/list.html', {'filas': filas, 'es_admin': es_admin})
+    xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    ip = xff.split(',')[0].strip() if xff else request.META.get('REMOTE_ADDR')
+    return render(request, 'hidrologicas/list.html', {'filas': filas, 'es_admin': es_admin, 'ip': ip})
 
 from .forms import HidrologicaForm
 

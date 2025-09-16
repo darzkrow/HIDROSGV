@@ -1,76 +1,52 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="es">
-  <head>
+<head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>
-      {{ empresa_nombre}} | {% block title %} {% endblock %}
-    </title>
+    <title>{{ empresa_nombre}} | {% block title %} {% endblock %}</title>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- Google Font: Source Sans Pro -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback" />
-    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="{% static 'plugins/fontawesome-free/css/all.min.css' %}" />
-    <!-- Theme style -->
     <link rel="stylesheet" href="{% static 'dist/css/adminlte.min.css' %}" />
-  </head>
-  <body class="hold-transition sidebar-mini">
+      {% block extra_css %}{% endblock %}  
+</head>
+<body class="hold-transition sidebar-mini">
     <div class="wrapper">
-      <!-- Navbar -->
-      {% include 'dashboard/layouts/navbar.html' %}
-      <!-- /.navbar -->
-      <!-- Content Wrapper. Contains page content -->
-      <div class="content-wrapper">
-        <section class="content-header">
-          <div class="container-fluid">
-            <div class="row mb-2">
-              <div class="col-sm-6">
-                <h1>
-                  {% block titlecontent %}
+        {% include 'dashboard/layouts/navbar.html' %}
+        {% include 'dashboard/layouts/sidebar.html' %}
+        <div class="content-wrapper" style="min-height: 54px;">
+            <section class="content-header">
+                <div class="container-fluid">
+                    <div class="row mb-2">
+                        <div class="col-sm-6">
+                            <h1>
+                                {% block titlecontent %}{% endblock %}
+                            </h1>
+                        </div>
+                        <div class="col-sm-6">
+                            <ol class="breadcrumb float-sm-right">
+                                <li class="breadcrumb-item"><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                                <li class="breadcrumb-item active">{% block titlemenu %}{% endblock %}</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+                </section>
+            <section class="content">
+                <div class="container-fluid">
+                    <div class="row">
+                        {% block content %}{% endblock %}
+                    </div>
+                </div>
+            </section>
+        </div>
+        {% include 'dashboard/layouts/footer.html' %}
 
-                  {% endblock %}
-                </h1>
-              </div>
-              <div class="col-sm-6">
-                <ol class="breadcrumb float-sm-right">
-                  <li class="breadcrumb-item">
-                    <a href="/">Dashboard</a>
-                  </li>
-                  <li class="breadcrumb-item active">
-                    {% block titlemenu %}
-
-                    {% endblock %}
-                  </li>
-                </ol>
-              </div>
-            </div>
-          </div>
-          <!-- /.container-fluid -->
-        </section>
-  
-        {% block content %}
-
-
-
-
-        
-        {% endblock %}
-        <!-- /.content-wrapper -->
-      </div>
- </div>
-      <!-- siderbar -->
-      {% include 'dashboard/layouts/sidebar.html' %}
-   
-    <!-- /.siderbar -->
-    <!-- REQUIRED SCRIPTS -->
-
-    <!-- jQuery -->
+    </div>
     <script src="{% static 'plugins/jquery/jquery.min.js' %}"></script>
-    <!-- Bootstrap 4 -->
     <script src="{% static 'plugins/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <!-- AdminLTE App -->
     <script src="{% static 'dist/js/adminlte.min.js' %}"></script>
-  </body>
+    {% block extra_js %}{% endblock %}
+</body>
 </html>

@@ -128,25 +128,28 @@ def users_list_view(request):
         for u in users:
             ip_map[u.id] = getattr(u, 'last_login_ip', None)
         if q:
-                    users = users.filter(
-                            Q(username__icontains=q) |
-                                Q(first_name__icontains=q) |
-                                Q(last_name__icontains=q) |
-                                Q(email__icontains=q) |
-                                Q(profile__dni__icontains=q)
-                    )
+            users = users.filter(
+                Q(username__icontains=q) |
+                Q(first_name__icontains=q) |
+                Q(last_name__icontains=q) |
+                Q(email__icontains=q) |
+                Q(profile__dni__icontains=q)
+            )
         if group_id:
             users = users.filter(groups__id=group_id)
         cantidad = users.count()
-        paginator = Paginator(users, 8)
+        paginator = Paginator(users, 20)
         page_obj = paginator.get_page(page_number)
+        xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
+        ip = xff.split(',')[0].strip() if xff else request.META.get('REMOTE_ADDR')
         return render(request, 'dashboard/admin/users_list.html', {
             'cantidad': cantidad,
             'grupos': grupos,
             'request': request,
             'page_obj': page_obj,
             'ip_map': ip_map,
-            'connected_users': connected_users
+            'connected_users': connected_users,
+            'ip': ip
         })
 
 @login_required
@@ -163,7 +166,8 @@ def detalle_user_view(request, user_id=None):
 
 
 def session_blocked_view(request):
-    ip = request.META.get('REMOTE_ADDR')
+    xff = request.META.get('HTTP_X_FORWARDED_FOR', '')
+    ip = xff.split(',')[0].strip() if xff else request.META.get('REMOTE_ADDR')
     if request.user.is_authenticated:
         messages.error(request, 'Usted ya tiene una sesión abierta, por lo que no puede iniciar sesión nuevamente.')
         return render(request, 'dashboard/users/session_blocked.html', {'ip': ip, 'user': request.user})
@@ -285,7 +289,6 @@ def change_password_view(request):
 def logout_view(request):
 	logout(request)
 	return redirect('login')
-
 
 
 def register_view(request):

@@ -1,4 +1,4 @@
-{% extends 'dashboard/content.html' %}
+{% extends 'dashboard/base.html' %}
 {% load static %}
 {% block title %}Hidrológicas{% endblock %}
 {% block titlecontent %}Hidrológicas{% endblock %}
@@ -41,8 +41,7 @@
             background: #f8f9fa;
         }
     </style>
-    <div class="container-fluid">
-        <div class="row justify-content-center">
+
             {% if filas %}
                 {% for fila in filas %}
                     {% for h in fila %}
@@ -93,15 +92,8 @@
                     <a href="{% url 'gerente_create' %}" class="btn btn-warning">Registrar Gerente Comercial</a>
                 </div>
             {% endif %}
-        </div>
-    </div>
-        {% if es_admin %}
-        <div class="row">
-            <div class="col text-center">
-                <a href="{% url 'hidrologica_create' %}" class="btn btn-success">Registrar Nueva Hidrológica</a>
-            </div>
-        </div>
-        {% endif %}
+
+
 {% endblock %}
 {% block extra_js %}
 <script>

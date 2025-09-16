@@ -3,74 +3,64 @@
 
 {% extends 'dashboard/base.html' %}
 {% block title %}Panel de control{% endblock %}
+{% block titlecontent %}Panel de control{% endblock %}
+{% block titlemenu %}    Inicio              {% endblock %}
 {% block content %}
-<div class="content">
-    <div class="container-fluid">
-        <div class="row justify-content-center mb-4">
-            <div class="col-lg-8 col-md-10 col-12">
-                <div class="card shadow-sm mb-3">
-                    <div class="card-body">
-                        <h2 class="mb-3">Bienvenido, {{ request.user.first_name }} {{ request.user.last_name }}!</h2>
-                        <p class="mb-4">Último acceso: {% if last_login %}{{ last_login|date:'d/m/Y H:i' }}{% else %}Nunca{% endif %} | IP: {{ ip }}</p>
-                        <a href="{% url 'detalle_user' %}" class="btn btn-info me-2">Ver mi perfil</a>
-                        <a href="{% url 'bloquear_sesion' %}" class="btn btn-danger ms-2" onclick="return confirm('¿Seguro que deseas bloquear tu sesión? Esto cerrará tu sesión actual.');">Bloquear mi sesión</a>
-                    </div>
-                </div>
-            </div>
-        </div>
 
-        {% if is_admin %}
-        <div class="row">
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-success">
-                    <div class="inner">
-                        <h3>{{ activos|stringformat:"03d" }}</h3>
-                        <p>Usuarios Activos</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <a href="{% url 'users_connected' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ activos|stringformat:"03d" }}</h3>
+                <p>Usuarios Activos</p>
             </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-secondary">
-                    <div class="inner">
-                        <h3>{{ inactivos|stringformat:"03d" }}</h3>
-                        <p>Usuarios Inactivos</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-slash"></i>
-                    </div>
-                    <a href="{% url 'users_list' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
+            <div class="icon">
+                <i class="fas fa-user-check"></i>
             </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-danger">
-                    <div class="inner">
-                        <h3>{{ bloqueados|stringformat:"03d" }}</h3>
-                        <p>Usuarios Bloqueados</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-lock"></i>
-                    </div>
-                    <a href="{% url 'users_list' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
-            <div class="col-lg-3 col-6">
-                <div class="small-box bg-info">
-                    <div class="inner">
-                        <h3>{{ conectados|stringformat:"03d" }}</h3>
-                        <p>Usuarios Conectados</p>
-                    </div>
-                    <div class="icon">
-                        <i class="fas fa-user-friends"></i>
-                    </div>
-                    <a href="{% url 'users_list' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
-                </div>
-            </div>
+            <a href="{% url 'users_connected' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
         </div>
-        {% endif %}
     </div>
-</div>
+
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-secondary">
+            <div class="inner">
+                <h3>{{ inactivos|stringformat:"03d" }}</h3>
+                <p>Usuarios Inactivos</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-slash"></i>
+            </div>
+            <a href="{% url 'users_list' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-info">
+            <div class="inner">
+                <h3>{{ conectados|stringformat:"03d" }}</h3>
+                <p>Usuarios Conectados</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-friends"></i>
+            </div>
+            <a href="{% url 'users_list' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-danger">
+            <div class="inner">
+                <h3>{{ bloqueados|stringformat:"03d" }}</h3>
+                <p>Usuarios Bloqueados</p>
+            </div>
+            <div class="icon">
+                <i class="fas fa-user-lock"></i>
+            </div>
+            <a href="{% url 'users_list' %}" class="small-box-footer">VER MÁS <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+
+
+
+
+
 {% endblock %}
