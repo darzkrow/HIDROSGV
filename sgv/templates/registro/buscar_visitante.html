@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Buscar Visitante{% endblock %}
+{% block titlecontent %}Buscar Visitante{% endblock %}
+{% block titlemenu %} Visitantes {% endblock %}
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h4><i class="fa-solid fa-magnifying-glass"></i> Buscar Visitante</h4>
+          </div>
+          <div class="card-body">
+            <form method="get" action="" class="row g-3 mb-4">
+              <div class="col-md-5">
+                <input type="text" name="identificacion" class="form-control" placeholder="Nombre, cédula o empresa" value="{{ request.GET.identificacion }}">
+              </div>
+              <div class="col-md-5">
+                <input type="text" name="carnet" class="form-control" placeholder="Número de carnet" value="{{ request.GET.carnet }}">
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100"><i class="fa-solid fa-search"></i> Buscar</button>
+              </div>
+            </form>
+            {% if mensaje %}
+              <div class="alert alert-warning">{{ mensaje }}</div>
+            {% endif %}
+
+            {% if visitantes %}
+            <div class="table-responsive mb-4">
+              <table class="table table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Cédula</th>
+                    <th>Empresa</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for visitante in visitantes %}
+                  <tr>
+                    <td>{{ visitante.nombre_completo }}</td>
+                    <td>{{ visitante.cedula }}</td>
+                    <td>{{ visitante.empresa }}</td>
+                    <td>
+                      <a href="{% url 'sgv:detalle-visitante' visitante.id %}" class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i> Ver</a>
+                      <a href="{% url 'sgv:registro-visita-directo' visitante.id %}" class="btn btn-success btn-sm ms-1"><i class="fa-solid fa-user-check"></i> Registrar Visita</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+
+            {% if visitas %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Visitante</th>
+                    <th>Fecha Entrada</th>
+                    <th>Motivo</th>
+                    <th>Oficina</th>
+                    <th>Anfitrión</th>
+                    <th>Carnet</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for visita in visitas %}
+                  <tr>
+                    <td>{{ visita.visitante.nombre_completo }}</td>
+                    <td>{{ visita.fecha_entrada }}</td>
+                    <td>{{ visita.motivo }}</td>
+                    <td>{{ visita.oficina.nombre }}</td>
+                    <td>{{ visita.anfitrion.nombre_completo }}</td>
+                    <td>{% if visita.carnet %}{{ visita.carnet.numero }}{% else %}-{% endif %}</td>
+                    <td>
+                      <a href="{% url 'sgv:detalle-visitante' visita.visitante.id %}" class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i> Ver Visitante</a>
+                      {% if not visita.fecha_salida %}
+                        <a href="{% url 'sgv:registrar-salida' visita.id %}" class="btn btn-warning btn-sm ms-1"><i class="fa-solid fa-door-open"></i> Registrar Salida</a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

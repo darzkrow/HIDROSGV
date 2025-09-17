@@ -6,55 +6,86 @@
 <div class="content">
     <div class="container-fluid">
         <div class="row justify-content-center">
-            <div class="col-md-10">
+            <div class="col">
                 <div class="card">
                     <div class="card-header bg-primary">
-                        <h3 class="card-title">Listado de Permisos por Tipo</h3>
+                        <h3 class="card-title">Gestión de Roles y Permisos</h3>
                     </div>
                     <div class="card-body">
-                        {% if message %}
-                        <div class="alert alert-success">{{ message }}</div>
-                        {% endif %}
-                        <div class="row">
-                            {% for tipo, perms in grouped_permissions.items %}
-                            <div class="col-md-3">
-                                <h5 class="text-info">
-                                    {% if tipo == 'Ver' %}Ver{% elif tipo == 'Editar' %}Editar{% elif tipo == 'Eliminar' %}Eliminar{% else %}Otros{% endif %}
-                                </h5>
-                                <ul class="list-group mb-3">
-                                    {% for perm in perms %}
-                                    <li class="list-group-item small">{{ perm.name }}</li>
-                                    {% empty %}
-                                    <li class="list-group-item text-muted">Sin permisos</li>
-                                    {% endfor %}
-                                </ul>
+                        {% if messages %}
+                            {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
                             {% endfor %}
-                        </div>
-                        <hr>
+                        {% endif %}
+
                         <h5 class="mt-4">Asignar Rol a Usuario</h5>
-                        <form method="post" class="row g-2">
+                        <form method="post" class="row g-2 mb-4">
                             {% csrf_token %}
-                            <div class="col-md-4">
-                                <select name="user_id" class="form-control" required>
-                                    <option value="">Seleccione usuario</option>
+                            <div class="col-md-4 mb-2">
+                                <label for="user_id" class="form-label">Usuario</label>
+                                <select name="user_id" id="user_id" class="form-control" required>
+                                    <option value="">Seleccione un usuario</option>
                                     {% for user in users %}
-                                    <option value="{{ user.id }}">{{ user.get_full_name }} ({{ user.username }})</option>
+                                    <option value="{{ user.id }}">{{ user.get_full_name|default:user.username }} ({{ user.username }})</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <select name="group_id" class="form-control" required>
-                                    <option value="">Seleccione rol</option>
+                            <div class="col-md-4 mb-2">
+                                <label for="group_id" class="form-label">Rol</label>
+                                <select name="group_id" id="group_id" class="form-control" required>
+                                    <option value="">Seleccione un rol</option>
                                     {% for group in groups %}
                                     <option value="{{ group.id }}">{{ group.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-success">Asignar Rol</button>
+                            <div class="col-md-4 d-flex align-items-end mb-2">
+                                <button type="submit" class="btn btn-success w-100">Asignar Rol</button>
                             </div>
                         </form>
+                        <h5 class="mt-4">Usuarios y sus Roles</h5>
+                        <table class="table table-bordered table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Roles Asignados</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>{{ user.get_full_name|default:user.username }} ({{ user.username }})</td>
+                                    <td>
+                                        {% if user.groups.all %}
+                                            {% for group in user.groups.all %}
+                                                <span class="badge bg-info text-dark">{{ group.name }}</span>
+                                            {% endfor %}
+                                        {% else %}
+                                            <span class="text-muted">No asignado</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.groups.all %}
+                                            <form method="post" action="{% url 'remove_user_role' user.id %}" onsubmit="return confirm('¿Está seguro de que desea eliminar todos los roles de este usuario?');">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-danger btn-sm">Eliminar Roles</button>
+                                            </form>
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>    
+                        
+                       
                     </div>
                 </div>
             </div>

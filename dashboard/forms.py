@@ -5,24 +5,38 @@ from .models import Profile
 from django.db import transaction, IntegrityError
 from django.contrib.auth.models import Group, Permission
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Layout, Field, Submit
+from crispy_forms.layout import Layout, Field, Submit, Div
 
 
 
 
 class CustomUserCreationForm(forms.ModelForm):
-    dni = forms.CharField(label='Cédula', max_length=12, required=True)
-    first_name = forms.CharField(label='Nombre', max_length=30, required=True)
-    last_name = forms.CharField(label='Apellido', max_length=30, required=True)
-    email = forms.EmailField(label='Correo electrónico', required=True)
-    telefono = forms.CharField(label='Teléfono', max_length=15, required=False)
-    nac = forms.ChoiceField(label='Nacionalidad', choices=Profile.NAC_CHOICES, required=True)
-    password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput, required=True)
-    password2 = forms.CharField(label='Confirmar contraseña', widget=forms.PasswordInput, required=True)
+    dni = forms.CharField(label='Cédula', max_length=12, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'dni'}))
+    first_name = forms.CharField(label='Nombre', max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'first_name'}))
+    last_name = forms.CharField(label='Apellido', max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'last_name'}))
+    email = forms.EmailField(label='Correo electrónico', required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'id': 'email'}))
+    telefono = forms.CharField(label='Teléfono', max_length=15, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'telefono'}))
+    nac = forms.ChoiceField(label='Nacionalidad', choices=Profile.NAC_CHOICES, required=True, widget=forms.Select(attrs={'class': 'form-control', 'id': 'nac'}))
+    password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'password1'}), required=True)
+    password2 = forms.CharField(label='Confirmar contraseña', widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'password2'}), required=True)
+
+
 
     class Meta:
         model = User
         fields = ('username', 'first_name', 'last_name', 'email', 'password1', 'password2')
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'id': 'username'}),
+            'first_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'first_name'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'last_name'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'id': 'email'}),
+            'password1': forms.PasswordInput(attrs={'class': 'form-control', 'id': 'password1'}),
+            'password2': forms.PasswordInput(attrs={'class': 'form-control', 'id': 'password2'}),
+            'dni': forms.TextInput(attrs={'class': 'form-control', 'id': 'dni'}),
+            'telefono': forms.TextInput(attrs={'class': 'form-control', 'id': 'telefono'}),
+            'nac': forms.Select(attrs={'class': 'form-control', 'id': 'nac'}),
+
+        }
     def clean(self):
         cleaned_data = super().clean()
         password1 = cleaned_data.get('password1')
@@ -68,6 +82,7 @@ class CustomUserCreationForm(forms.ModelForm):
                     )
             except IntegrityError:
                 self.add_error('dni', 'Ya existe un usuario con esa cédula.')
+                self.add_error(None, 'Ya existe un usuario con esa cédula.')
                 user.delete()
                 return None
         return user
@@ -109,14 +124,50 @@ class GroupPermissionsForm(forms.Form):
 
 
 class UserForm(forms.ModelForm):
+    first_name = forms.CharField(label='Nombre', max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'first_name', 'placeholder': 'Nombre'}))
+    last_name = forms.CharField(label='Apellido', max_length=30, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'last_name', 'placeholder': 'Apellido'}))
+    email = forms.EmailField(label='Correo electrónico', required=True, widget=forms.EmailInput(attrs={'class': 'form-control', 'id': 'email', 'placeholder': 'Correo electrónico'}))
+    password1 = forms.CharField(label='Contraseña', widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'password1', 'placeholder': 'Contraseña'}), required=True)
+    password2 = forms.CharField(label='Confirmar contraseña', widget=forms.PasswordInput(attrs={'class': 'form-control', 'id': 'password2', 'placeholder': 'Confirmar contraseña'}), required=True)
+    dni = forms.CharField(label='Cédula', max_length=12, required=True, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'dni', 'placeholder': 'Cédula'}))
+    telefono = forms.CharField(label='Teléfono', max_length=15, required=False, widget=forms.TextInput(attrs={'class': 'form-control', 'id': 'telefono', 'placeholder': 'Teléfono'}))
+    nac = forms.ChoiceField(label='Nacionalidad', choices=Profile.NAC_CHOICES, required=True, widget=forms.Select(attrs={'class': 'form-control', 'id': 'nac', 'placeholder': 'Nacionalidad'}))
+    avatar = forms.ImageField(label='Avatar', required=False, widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'id': 'avatar', 'accept': 'image/*'}))
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if FormHelper:
+            self.helper = FormHelper()
+            self.helper.form_method = 'post'
+            self.helper.form_enctype = 'multipart/form-data'
+            self.helper.layout = Layout(
+                Div(
+                    Div(Field('first_name'), css_class='col-md-6'),
+                    Div(Field('last_name'), css_class='col-md-6'),
+                    css_class='row'
+                ),
+                Div(
+                    Div(Field('email'), css_class='col-md-6'),
+                    Div(Field('dni'), css_class='col-md-6'),
+                    css_class='row'
+                ),
+                Div(
+                    Div(Field('telefono'), css_class='col-md-6'),
+                    Div(Field('nac'), css_class='col-md-6'),
+                    css_class='row'
+                ),
+                Div(
+                    Div(Field('password1'), css_class='col-md-6'),
+                    Div(Field('password2'), css_class='col-md-6'),
+                    css_class='row'
+                ),
+                Div(Field('avatar'), css_class='mb-3'),
+                Submit('submit', 'Guardar', css_class='btn btn-primary mt-3')
+            )
+
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email']
-        widgets = {
-            'first_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'first_name'}),
-            'last_name': forms.TextInput(attrs={'class': 'form-control', 'id': 'last_name'}),
-            'email': forms.EmailInput(attrs={'class': 'form-control', 'id': 'email'}),
-        }
+        fields = ['first_name', 'last_name', 'email', 'password1', 'password2', 'dni', 'telefono', 'nac', 'avatar']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

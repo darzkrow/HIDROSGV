@@ -1,10 +1,72 @@
+
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 
-class User(AbstractUser):
+class SoftDeleteQuerySet(models.QuerySet):
+	def delete(self):
+		return super().update(deleted_at=timezone.now())
+
+	def hard_delete(self):
+		return super().delete()
+
+	def alive(self):
+		return self.filter(deleted_at__isnull=True)
+
+	def dead(self):
+		return self.exclude(deleted_at__isnull=True)
+
+
+class SoftDeleteModel(models.Model):
+	deleted_at = models.DateTimeField(null=True, blank=True)
+
+	objects = SoftDeleteQuerySet.as_manager()
+
+	class Meta:
+		abstract = True
+
+	def delete(self, using=None, keep_parents=False):
+		self.deleted_at = timezone.now()
+		self.save()
+
+	def hard_delete(self, using=None, keep_parents=False):
+		super().delete(using=using, keep_parents=keep_parents)
+
+
+
+# --- SoftDelete base classes ---
+class SoftDeleteQuerySet(models.QuerySet):
+	def delete(self):
+		return super().update(deleted_at=timezone.now())
+
+	def hard_delete(self):
+		return super().delete()
+
+	def alive(self):
+		return self.filter(deleted_at__isnull=True)
+
+	def dead(self):
+		return self.exclude(deleted_at__isnull=True)
+
+
+class SoftDeleteModel(models.Model):
+	deleted_at = models.DateTimeField(null=True, blank=True)
+
+	objects = SoftDeleteQuerySet.as_manager()
+
+	class Meta:
+		abstract = True
+
+	def delete(self, using=None, keep_parents=False):
+		self.deleted_at = timezone.now()
+		self.save()
+
+	def hard_delete(self, using=None, keep_parents=False):
+		super().delete(using=using, keep_parents=keep_parents)
+
+class User(AbstractUser, SoftDeleteModel):
 	email = models.EmailField('Correo electrónico', unique=True)
 
 	groups = models.ManyToManyField(
@@ -22,7 +84,7 @@ class User(AbstractUser):
 		verbose_name='permisos de usuario',
 	)
 
-class Empresa(models.Model):
+class Empresa(SoftDeleteModel):
 	nombre = models.CharField('Nombre de la empresa', max_length=100, unique=True)
 	razon_social = models.CharField('Razón social', max_length=150, blank=True, null=True)
 	rif = models.CharField('RIF', max_length=15, unique=True)
@@ -49,7 +111,7 @@ class Empresa(models.Model):
 		super().save(*args, **kwargs)
 
 
-class UnidadOrganizativa(models.Model):
+class UnidadOrganizativa(SoftDeleteModel):
 	empresa = models.ForeignKey(Empresa, on_delete=models.CASCADE, related_name='unidades')
 	prefijo = models.CharField('Prefijo', max_length=10, unique=True)
 	nombre = models.CharField('Nombre de la unidad', max_length=100, unique=True)
@@ -68,7 +130,7 @@ class UnidadOrganizativa(models.Model):
 		return f"({self.empresa.nombre}) # {self.prefijo} - {self.nombre}"
 
 
-class Profile(models.Model):
+class Profile(SoftDeleteModel):
 	VENEZOLANO = 'V'
 	EXTRANJERO = 'E'
 	NAC_CHOICES = [
@@ -94,7 +156,7 @@ class Profile(models.Model):
 		return f"Perfil de {self.user.username} - {self.user.first_name} {self.user.last_name}"
 
 
-class Departamento(models.Model):
+class Departamento(SoftDeleteModel):
     unidad = models.ForeignKey(UnidadOrganizativa, on_delete=models.CASCADE, related_name='departamentos')
     nombre = models.CharField('Nombre del departamento', max_length=100, unique=True)
     descripcion = models.CharField('Descripción', max_length=200, blank=True, null=True)
@@ -111,7 +173,7 @@ class Departamento(models.Model):
     def __str__(self):
         return f"{self.nombre} ({self.unidad.nombre})"
 
-class Cargo(models.Model):
+class Cargo(SoftDeleteModel):
     departamento = models.ForeignKey(Departamento, on_delete=models.CASCADE, related_name='cargos')
     nombre = models.CharField('Nombre del cargo', max_length=100, unique=True)
     descripcion = models.CharField('Descripción', max_length=200, blank=True, null=True)

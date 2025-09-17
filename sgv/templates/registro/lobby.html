@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard Lobby{% endblock %}
+{% block titlecontent %}Dashboard Lobby{% endblock %}
+{% block titlemenu %} Lobby {% endblock %}
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h4><i class="fa-solid fa-building-user"></i> Bienvenido al Lobby</h4>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <i class="fa-solid fa-user fa-2x text-primary mb-2"></i>
+                    <h5 class="card-title">Visitantes</h5>
+                    <p class="card-text">Gestión de visitantes registrados y sus visitas.</p>
+                    <a href="{% url 'sgv:buscar-visitante' %}" class="btn btn-outline-primary btn-sm">Ver visitantes</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <i class="fa-solid fa-address-card fa-2x text-info mb-2"></i>
+                    <h5 class="card-title">Registrar Visita</h5>
+                    <p class="card-text">Registra la entrada de un visitante al edificio.</p>
+                    <a href="{% url 'sgv:registro-visita' %}" class="btn btn-outline-info btn-sm">Registrar visita</a>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4 mb-3">
+                <div class="card shadow-sm">
+                  <div class="card-body">
+                    <i class="fa-solid fa-list fa-2x text-dark mb-2"></i>
+                    <h5 class="card-title">Historial de Visitas</h5>
+                    <p class="card-text">Consulta el historial completo de visitas.</p>
+                    <a href="{% url 'sgv:lista-visitas' %}" class="btn btn-outline-dark btn-sm">Ver historial</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <hr>
+            <div class="text-center mt-3">
+              <span class="text-muted">Panel personalizado para el lobby. Último acceso: {{ user.last_login }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

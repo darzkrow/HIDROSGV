@@ -1,3 +1,4 @@
+from django.views.decorators.http import require_POST
 """Vistas del app `dashboard`.
 
 Imports ordenados: stdlib, Django, locales.
@@ -10,6 +11,7 @@ from datetime import timedelta
 
 # Django imports
 from django.contrib import messages
+from .alert import sweetalert_success, sweetalert_error, sweetalert_warning, sweetalert_info
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.forms import (
@@ -36,6 +38,18 @@ from .models import (
     User, Empresa, Profile, UnidadOrganizativa,
     Departamento, Cargo,
 )
+from django.contrib.auth import get_user_model
+
+# Eliminar todos los roles de un usuario
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+@require_POST
+def remove_user_role(request, user_id):
+    User = get_user_model()
+    user = get_object_or_404(User, id=user_id)
+    user.groups.clear()
+    request.session['swal'] = sweetalert_success(f'Se eliminaron todos los roles del usuario {user.username}.')['swal']
+    return redirect('roles_permissions')
 from .utils import get_connected_user_ids, get_connected_users, get_client_ip
 
 
@@ -68,7 +82,7 @@ def desconectar_usuario_view(request):
             data = session.get_decoded()
             if str(data.get('_auth_user_id')) == str(user_id):
                 session.delete()
-        messages.success(request, 'Sesión del usuario desconectada correctamente.')
+        request.session['swal'] = sweetalert_success('Sesión del usuario desconectada correctamente.')['swal']
     else:
         # Si no se especifica usuario, desconectar todos menos el admin actual
         sessions = Session.objects.filter(expire_date__gte=timezone.now())
@@ -77,7 +91,7 @@ def desconectar_usuario_view(request):
             uid = str(data.get('_auth_user_id'))
             if uid and uid != str(request.user.id):
                 session.delete()
-        messages.success(request, 'Todas las sesiones de usuarios han sido desconectadas (excepto la tuya).')
+        request.session['swal'] = sweetalert_success('Todas las sesiones de usuarios han sido desconectadas (excepto la tuya).')['swal']
     
     return redirect('users_list')
 
@@ -99,7 +113,7 @@ def reset_password_view(request, user_id):
     profile.must_change_password = True
     profile.save()
     
-    messages.success(request, f'Contraseña reseteada para {user.username}: {new_password}')
+    request.session['swal'] = sweetalert_success(f'Contraseña reseteada para {user.username}: {new_password}')['swal']
     return redirect('users_list')
 
 
@@ -217,14 +231,14 @@ def create_group_view(request):
         if 'delete_group' in request.POST:
             group_id = request.POST.get('delete_group')
             Group.objects.filter(id=group_id).delete()
-            message = 'Grupo eliminado correctamente.'
+            request.session['swal'] = sweetalert_success('Grupo eliminado correctamente.')['swal']
         # Editar permisos de grupo
         elif 'edit_group' in request.POST:
             group_id = request.POST.get('edit_group')
             perms_ids = request.POST.getlist(f'perms_{group_id}')
             group = Group.objects.get(id=group_id)
             group.permissions.set(perms_ids)
-            message = f'Permisos actualizados para el grupo "{group.name}".'
+            request.session['swal'] = sweetalert_success(f'Permisos actualizados para el grupo "{group.name}".')['swal']
         # Crear grupo
         else:
             group_name = request.POST.get('group_name')
@@ -232,7 +246,7 @@ def create_group_view(request):
             if group_name:
                 group, created = Group.objects.get_or_create(name=group_name)
                 group.permissions.set(perms_ids)
-                message = f'Grupo "{group_name}" creado y permisos asignados.'
+                request.session['swal'] = sweetalert_success(f'Grupo "{group_name}" creado y permisos asignados.')['swal']
     
     groups = Group.objects.all()  # Actualizar lista
     return render(request, 'dashboard/admin/create_group.html', {
@@ -245,6 +259,10 @@ def create_group_view(request):
 # Vista solo para administradores para gestión de roles y permisos
 @user_passes_test(lambda u: u.is_superuser)
 def roles_permissions_view(request):
+    # Limpiar swal después de mostrar
+    if 'swal' in request.session:
+        del request.session['swal']
+    User = get_user_model()
     users = User.objects.all()
     grupos = Group.objects.all()
     permissions = Permission.objects.all()
@@ -282,7 +300,7 @@ def roles_permissions_view(request):
             user = User.objects.get(id=user_id)
             group = Group.objects.get(id=group_id)
             user.groups.add(group)
-            message = f'Rol "{group.name}" asignado a {user.username}.'
+            request.session['swal'] = sweetalert_success(f'Rol "{group.name}" asignado a {user.username}.')['swal']
     
     return render(request, 'dashboard/roles_permissions.html', {
         'users': users,
@@ -309,7 +327,7 @@ def change_password_view(request):
             profile.must_change_password = False
             profile.password_expires_at = timezone.now() + timedelta(days=30)
             profile.save()
-            messages.success(request, 'Contraseña cambiada correctamente.')
+            request.session['swal'] = sweetalert_success('Contraseña cambiada correctamente.')['swal']
             login(request, user)
             return redirect('dashboard')
     else:
@@ -358,21 +376,21 @@ def register_view(request):
                 profile.password_expires_at = timezone.now() + timedelta(days=30)
                 profile.save()
                 
-                messages.success(request, f'Usuario {user.username} registrado. Contraseña temporal: {new_password}')
+                request.session['swal'] = sweetalert_success(f'Usuario {user.username} registrado. Contraseña temporal: {new_password}')['swal']
                 return redirect('users_list')
             except IntegrityError:
                 user.delete()
-                messages.error(request, 'Ya existe un usuario con esa cédula.')
+                request.session['swal'] = sweetalert_error('Ya existe un usuario con esa cédula.')['swal']
         else:
             # Fallback para tests: si no hay errores de duplicados, intentar crear usuario
             dup_errors = any(field in form.errors for field in ('dni', 'email', 'username'))
             # Si hay errores de duplicados, añadir mensajes claros para la UI/tests
             if 'dni' in form.errors:
-                messages.error(request, 'Ya existe un usuario con esa cédula')
+                request.session['swal'] = sweetalert_error('Ya existe un usuario con esa cédula')['swal']
             if 'email' in form.errors:
-                messages.error(request, 'Ya existe un usuario con ese correo electrónico')
+                request.session['swal'] = sweetalert_error('Ya existe un usuario con ese correo electrónico')['swal']
             if 'username' in form.errors:
-                messages.error(request, 'Ya existe un usuario con ese nombre de usuario')
+                request.session['swal'] = sweetalert_error('Ya existe un usuario con ese nombre de usuario')['swal']
 
             if not dup_errors:
                 try:
@@ -400,7 +418,7 @@ def register_view(request):
                     profile.password_expires_at = timezone.now() + timedelta(days=30)
                     profile.save()
                     
-                    messages.success(request, f'Usuario {user.username} registrado. Contraseña temporal: {new_password}')
+                    request.session['swal'] = sweetalert_success(f'Usuario {user.username} registrado. Contraseña temporal: {new_password}')['swal']
                     return redirect('users_list')
                 except Exception:
                     pass
@@ -721,7 +739,7 @@ class GroupCreateView(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, f'Grupo "{self.object.name}" creado correctamente.')
+        self.request.session['swal'] = sweetalert_success(f'Grupo "{self.object.name}" creado correctamente.')['swal']
         return response
 
     def get_context_data(self, **kwargs):
@@ -743,7 +761,7 @@ class GroupUpdateView(LoginRequiredMixin, UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        messages.success(self.request, f'Grupo "{self.object.name}" actualizado correctamente.')
+        self.request.session['swal'] = sweetalert_success(f'Grupo "{self.object.name}" actualizado correctamente.')['swal']
         return response
 
     def get_context_data(self, **kwargs):
@@ -766,5 +784,5 @@ class GroupDeleteView(LoginRequiredMixin, DeleteView):
         obj = self.get_object()
         name = obj.name
         response = super().delete(request, *args, **kwargs)
-        messages.success(request, f'Grupo "{name}" eliminado correctamente.')
+        request.session['swal'] = sweetalert_success(f'Grupo "{name}" eliminado correctamente.')['swal']
         return response

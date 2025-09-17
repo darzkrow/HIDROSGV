@@ -39,6 +39,7 @@ DJANGO_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles', 
+    'django.contrib.humanize',
                ]
 
 LOCAL_APPS = [
@@ -57,6 +58,13 @@ CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 INSTALLED_APPS = DJANGO_APPS + THRID_APPS + LOCAL_APPS
+
+# For testing convenience: run Celery tasks synchronously when enabled
+CELERY_TASK_ALWAYS_EAGER = env.bool('CELERY_TASK_ALWAYS_EAGER', default=False)
+
+
+# Default email backend (console for development)
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
 MIDDLEWARE_LOCAL = [
     'corsheaders.middleware.CorsMiddleware',
@@ -102,6 +110,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'dashboard.context_processors.empresa_context',
+                 # 'reservas.context_processors.reservas_notifications',  # Eliminado: app ya no existe
             ],
         },
     },

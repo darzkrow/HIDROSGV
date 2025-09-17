@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Lista de Visitas{% endblock %}
+{% block titlecontent %}Lista de Visitas{% endblock %}
+{% block titlemenu %} Visitas {% endblock %}
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header bg-dark text-white">
+            <h4><i class="fa-solid fa-list"></i> Lista de Visitas</h4>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Visitante</th>
+                    <th>Fecha Entrada</th>
+                    <th>Fecha Salida</th>
+                    <th>Motivo</th>
+                    <th>Oficina</th>
+                    <th>Anfitrión</th>
+                    <th>Carnet</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for visita in visitas %}
+                  <tr>
+                    <td>{{ visita.visitante.nombre_completo }}</td>
+                    <td>{{ visita.fecha_entrada }}</td>
+                    <td>{% if visita.fecha_salida %}{{ visita.fecha_salida }}{% else %}-{% endif %}</td>
+                    <td>{{ visita.motivo }}</td>
+                    <td>{{ visita.oficina.nombre }}</td>
+                    <td>{{ visita.anfitrion.nombre_completo }}</td>
+                    <td>{% if visita.carnet %}{{ visita.carnet.numero }}{% else %}-{% endif %}</td>
+                    <td>
+                      <a href="{% url 'sgv:detalle-visitante' visita.visitante.id %}" class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i> Ver Visitante</a>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% if not visitas %}
+              <div class="alert alert-warning">No hay visitas registradas.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

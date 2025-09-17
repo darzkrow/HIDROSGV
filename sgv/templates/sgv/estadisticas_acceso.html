@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Estadísticas de Acceso</h2>
+  <form method="get" class="row g-3 mb-4">
+    <div class="col-md-2">
+      <label>Fecha inicio</label>
+      <input type="date" name="fecha_inicio" class="form-control" value="{{ fecha_inicio }}">
+    </div>
+    <div class="col-md-2">
+      <label>Fecha fin</label>
+      <input type="date" name="fecha_fin" class="form-control" value="{{ fecha_fin }}">
+    </div>
+    <div class="col-md-2">
+      <label>Agrupación</label>
+      <select name="agrupacion" class="form-control">
+        <option value="diario" {% if agrupacion == 'diario' %}selected{% endif %}>Diario</option>
+        <option value="semanal" {% if agrupacion == 'semanal' %}selected{% endif %}>Semanal</option>
+        <option value="quincenal" {% if agrupacion == 'quincenal' %}selected{% endif %}>Quincenal</option>
+        <option value="mensual" {% if agrupacion == 'mensual' %}selected{% endif %}>Mensual</option>
+        <option value="trimestral" {% if agrupacion == 'trimestral' %}selected{% endif %}>Trimestral</option>
+        <option value="anual" {% if agrupacion == 'anual' %}selected{% endif %}>Anual</option>
+      </select>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+    <div class="col-md-2 d-flex align-items-end">
+      <a href="?{{ request.GET.urlencode }}&exportar=excel" class="btn btn-success me-2">Exportar Excel</a>
+      <a href="?{{ request.GET.urlencode }}&exportar=pdf" class="btn btn-danger">Exportar PDF</a>
+    </div>
+  </form>
+  <div class="row">
+    <div class="col-md-6">
+      <h5>Tabla de Accesos</h5>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Periodo</th>
+            <th>Total Accesos</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for est in estadisticas %}
+          <tr>
+            <td>{{ est.periodo|date:'Y-m-d' }}</td>
+            <td>{{ est.total }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2">No hay datos para el filtro seleccionado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="col-md-6">
+      <h5>Gráfico de Accesos</h5>
+      <canvas id="graficoAccesos" width="400" height="200"></canvas>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const labels = [{% for est in estadisticas %}'{{ est.periodo|date:"Y-m-d" }}'{% if not forloop.last %},{% endif %}{% endfor %}];
+  const data = [{% for est in estadisticas %}{{ est.total|default:0 }}{% if not forloop.last %},{% endif %}{% endfor %}];
+  const ctx = document.getElementById('graficoAccesos').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Accesos',
+        data: data,
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+</script>
+{% endblock %}

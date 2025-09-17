@@ -60,7 +60,7 @@ htmlcov/
 .coverage
 .pytest_cache/
 venv/
-static/
+
 
 dashboard/migrations/
 

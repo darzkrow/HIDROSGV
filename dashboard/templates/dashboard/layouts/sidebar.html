@@ -1,21 +1,17 @@
 {% load static %}
 
 <aside class="main-sidebar elevation-4 sidebar-dark-primary">
-  <!-- Brand Logo -->
-
-  <a href="/" class="brand-link">
+  <a href="{% url 'dashboard' %}" class="brand-link">
     <img
       src="{% static 'dist/img/AdminLTELogo.png' %}"
       alt=""
       class="brand-image img-circle elevation-3"
       style="opacity: 0.8"
     />
-    <span class="brand-text font-weight-light"><b>S.C.V</b> <sub>LTE</sub> <sup> 1.0</sup></span>
+    <span class="brand-text font-weight-light"><b>HIDRO</b> <sub>S.C.V</sub> <sup> 1.0</sup></span>
   </a>
 
-  <!-- Sidebar -->
   <div class="sidebar">
-    <!-- Sidebar user panel (optional) -->
     <div class="user-panel mt-3 pb-3 mb-3 d-flex">
       <div class="image">
         {% if request.user.profile.avatar %}
@@ -43,51 +39,22 @@
       </div>
     </div>
 
-    <!-- Sidebar Menu -->
     <nav class="mt-2">
-      <ul class="nav nav-pills nav-sidebar flex-column"  data-widget="treeview" role="menu" data-accordion="false">
+      <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
       
-       <li class="nav-item menu-open">
+       <li class="nav-item">
           <a
-            href="{% url 'index' %}"
+            href="{% url 'dashboard' %}"
             class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
           >
             <i class="nav-icon fas fa-tachometer-alt"></i>
-            <p>
-              Dashboard
-              <i class="right fas fa-angle-left"></i>
-            </p>
+            <p>Dashboard</p>
           </a>
       </li>
-
-      <!-- Sección Hidrológicas -->
-      <li class="nav-item has-treeview">
-        <a href="#" class="nav-link {% if 'hidrologica' in request.resolver_match.url_name %}active{% endif %}">
-          <i class="nav-icon fas fa-water"></i>
-          <p>
-            Hidrológicas
-            <i class="right fas fa-angle-left"></i>
-          </p>
-        </a>
-        <ul class="nav nav-treeview">
-          <li class="nav-item">
-            <a href="{% url 'hidrologica_list' %}" class="nav-link {% if request.resolver_match.url_name == 'hidrologica_list' %}active{% endif %}">
-              <i class="far fa-circle nav-icon"></i>
-              <p>Ver Hidrológicas</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="{% url 'hidrologica_create' %}" class="nav-link {% if request.resolver_match.url_name == 'hidrologica_create' %}active{% endif %}">
-              <i class="far fa-plus-square nav-icon"></i>
-              <p>Agregar Hidrológica</p>
-            </a>
-          </li>
-        </ul>
-      </li>
-        </li> 
-
-        <li class="nav-item menu-open">
-          <a href="#" class="nav-link">
+      
+      {% if user.is_superuser %}
+      <li class="nav-item has-treeview {% if 'users_' in request.resolver_match.url_name or 'group_' in request.resolver_match.url_name or 'empresa_' in request.resolver_match.url_name or 'unidad_' in request.resolver_match.url_name or 'departamento_' in request.resolver_match.url_name or 'cargo_' in request.resolver_match.url_name or 'roles_' in request.resolver_match.url_name %}menu-open{% endif %}">
+          <a href="#" class="nav-link {% if 'users_' in request.resolver_match.url_name or 'group_' in request.resolver_match.url_name or 'empresa_' in request.resolver_match.url_name or 'unidad_' in request.resolver_match.url_name or 'departamento_' in request.resolver_match.url_name or 'cargo_' in request.resolver_match.url_name or 'roles_' in request.resolver_match.url_name %}active{% endif %}">
             <i class="fas fa-building nav-icon"></i>
             <p>
               Panel Administrativo
@@ -95,7 +62,6 @@
             </p>
           </a>
           <ul class="nav nav-treeview">
-            {% if user.is_superuser %}
             <li class="nav-item">
               <a href="{% url 'users_list' %}" class="nav-link {% if request.resolver_match.url_name == 'users_list' %}active{% endif %}">
                 <i class="fas fa-users nav-icon"></i>
@@ -132,15 +98,9 @@
                 <p>Cargos</p>
               </a>
             </li>
-            <li class="nav-item">
-              <a href="{% url 'roles_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'roles_permissions' %}active{% endif %}">
-                <i class="fas fa-user-cog nav-icon"></i>
-                <p>Roles y Permisos</p>
-              </a>
-            </li>
-            <!-- Roles/Groups submenu -->
-            <li class="nav-item has-treeview">
-              <a href="#" class="nav-link {% if 'group' in request.resolver_match.url_name or request.resolver_match.url_name == 'roles_permissions' %}active{% endif %}">
+    
+            <li class="nav-item has-treeview {% if 'group_' in request.resolver_match.url_name or 'roles_' in request.resolver_match.url_name %}menu-open{% endif %}">
+              <a href="#" class="nav-link {% if 'group_' in request.resolver_match.url_name or 'roles_' in request.resolver_match.url_name %}active{% endif %}">
                 <i class="fas fa-users-cog nav-icon"></i>
                 <p>
                   Gestión de Roles
@@ -168,11 +128,34 @@
                 </li>
               </ul>
             </li>
-            {% endif %}
           </ul>
         </li>
+      {% endif %}
 
+      <li class="nav-item has-treeview {% if 'hidrologica' in request.resolver_match.url_name %}menu-open{% endif %}">
+        <a href="#" class="nav-link {% if 'hidrologica' in request.resolver_match.url_name %}active{% endif %}">
+          <i class="nav-icon fas fa-water"></i>
+          <p>
+            Hidrológicas
+            <i class="right fas fa-angle-left"></i>
+          </p>
+        </a>
+        <ul class="nav nav-treeview">
+          <li class="nav-item">
+            <a href="{% url 'hidrologica_list' %}" class="nav-link {% if request.resolver_match.url_name == 'hidrologica_list' %}active{% endif %}">
+              <i class="far fa-building nav-icon"></i>
+              <p>Ver Hidrológicas</p>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'hidrologica_create' %}" class="nav-link {% if request.resolver_match.url_name == 'hidrologica_create' %}active{% endif %}">
+              <i class="far fa-plus-square nav-icon"></i>
+              <p>Agregar Hidrológica</p>
+            </a>
+          </li>
+        </ul>
+      </li>
       </ul>
     </nav>
-  </div>
+    </div>
 </aside>

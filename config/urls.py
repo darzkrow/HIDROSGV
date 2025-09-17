@@ -9,6 +9,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('dashboard.urls')),
 
+
 ]
 
 # Servir archivos de medios en desarrollo

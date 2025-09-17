@@ -1,0 +1,8 @@
+body {
+    background-image: url('./img/wallpaper.jpg');
+    background-repeat: no-repeat;
+    background-position: 0 0; /* Centrar horizontalmente y verticalmente */
+    background-attachment: fixed; /* Opcional: fija la imagen de fondo */
+    background-size: cover;
+
+}

@@ -8,6 +8,7 @@ from .views import (
     DepartamentoListView, DepartamentoCreateView, DepartamentoUpdateView, DepartamentoDeleteView,
     CargoListView, CargoCreateView, CargoUpdateView, CargoDeleteView
 )
+from .views import remove_user_role
 
 urlpatterns = [
     path('', views.index_view, name='index'),
@@ -53,4 +54,5 @@ urlpatterns = [
     path('groups/nuevo/', views.GroupCreateView.as_view(), name='group_create'),
     path('groups/<int:pk>/editar/', views.GroupUpdateView.as_view(), name='group_update'),
     path('groups/<int:pk>/eliminar/', views.GroupDeleteView.as_view(), name='group_delete'),
+    path('remove-user-role/<int:user_id>/', views.remove_user_role, name='remove_user_role'),
 ]

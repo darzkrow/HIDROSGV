@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Detalle del Visitante{% endblock %}
+{% block titlecontent %}Detalle del Visitante{% endblock %}
+{% block titlemenu %} Visitantes {% endblock %}
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="card mb-4">
+          <div class="card-header bg-primary text-white d-flex align-items-center">
+            <h4 class="me-3"><i class="fa-solid fa-user"></i> Detalle del Visitante</h4>
+            <div>
+              {% if visitante.foto %}
+                <img src="{{ visitante.foto.url }}" alt="Foto del visitante" class="rounded-circle border border-2" style="width:70px;height:70px;object-fit:cover;">
+              {% else %}
+                <span class="fa-stack fa-2x">
+                  <i class="fa-solid fa-circle fa-stack-2x text-secondary"></i>
+                  <i class="fa-solid fa-user fa-stack-1x fa-inverse"></i>
+                </span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="card-body">
+            <form method="post" action="{% url 'sgv:detalle-visitante' visitante.id %}" id="form-detalle-visitante">
+              {% csrf_token %}
+              <div class="row g-3">
+                {% for field in form %}
+                  <div class="col-md-6">
+                    <div class="form-floating">
+                      {{ field.label_tag }}
+                      {{ field }}
+                      {% for error in field.errors %}<div class="text-danger">{{ error }}</div>{% endfor %}
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+              <div class="mt-4 d-flex justify-content-end">
+                <button type="button" class="btn btn-info me-2" id="btn-editar"><i class="fa-solid fa-pen"></i> Editar Visitante</button>
+                <button type="submit" class="btn btn-success d-none" id="btn-guardar"><i class="fa-solid fa-floppy-disk"></i> Guardar Cambios</button>
+              </div>
+            </form>
+            <hr>
+            <a href="{% url 'sgv:registro-visita-directo' visitante.id %}" class="btn btn-success"><i class="fa-solid fa-user-check"></i> Registrar Nueva Visita</a>
+          </div>
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const btnEditar = document.getElementById('btn-editar');
+              const btnGuardar = document.getElementById('btn-guardar');
+              const form = document.getElementById('form-detalle-visitante');
+              btnEditar.addEventListener('click', function() {
+                form.querySelectorAll('input, select, textarea').forEach(function(el) {
+                  el.removeAttribute('readonly');
+                  el.classList.remove('form-control-plaintext');
+                  el.classList.add('form-control');
+                });
+                btnEditar.classList.add('d-none');
+                btnGuardar.classList.remove('d-none');
+              });
+            });
+          </script>
+        </div>
+        <div class="card">
+          <div class="card-header bg-secondary text-white">
+            <h5><i class="fa-solid fa-clock-rotate-left"></i> Historial de Visitas</h5>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Fecha Entrada</th>
+                    <th>Fecha Salida</th>
+                    <th>Motivo</th>
+                    <th>Oficina</th>
+                    <th>Anfitrión</th>
+                    <th>Carnet</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for visita in visitas %}
+                  <tr>
+                    <td>{{ visita.fecha_entrada }}</td>
+                    <td>{% if visita.fecha_salida %}{{ visita.fecha_salida }}{% else %}-{% endif %}</td>
+                    <td>{{ visita.motivo }}</td>
+                    <td>{{ visita.oficina.nombre }}</td>
+                    <td>{{ visita.anfitrion.nombre_completo }}</td>
+                    <td>{% if visita.carnet %}{{ visita.carnet.numero }}{% else %}-{% endif %}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="mt-3">
+          <small class="text-muted">
+            Creado por: {{ visitante.created_by }} | Modificado por: {{ visitante.updated_by }} | Eliminado por: {{ visitante.deleted_by }} | Estado: {% if visitante.is_deleted %}Eliminado{% else %}Activo{% endif %}
+          </small>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

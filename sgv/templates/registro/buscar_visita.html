@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Buscar Visita{% endblock %}
+{% block titlecontent %}Buscar Visita{% endblock %}
+{% block titlemenu %} Visitas {% endblock %}
+{% block content %}
+<div class="content">
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-10">
+        <div class="card">
+          <div class="card-header bg-info text-white">
+            <h4><i class="fa-solid fa-magnifying-glass-location"></i> Buscar Visita</h4>
+          </div>
+          <div class="card-body">
+            <form method="get" action="" class="row g-3 mb-4">
+              <div class="col-md-8">
+                <input type="text" name="q" class="form-control" placeholder="Nombre visitante, motivo, oficina" value="{{ request.GET.q }}">
+              </div>
+              <div class="col-md-2">
+                <button type="submit" class="btn btn-info w-100"><i class="fa-solid fa-search"></i> Buscar</button>
+              </div>
+            </form>
+            {% if visitas %}
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead class="table-dark">
+                  <tr>
+                    <th>Visitante</th>
+                    <th>Fecha Entrada</th>
+                    <th>Motivo</th>
+                    <th>Oficina</th>
+                    <th>Anfitrión</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for visita in visitas %}
+                  <tr>
+                    <td>{{ visita.visitante.nombre_completo }}</td>
+                    <td>{{ visita.fecha_entrada }}</td>
+                    <td>{{ visita.motivo }}</td>
+                    <td>{{ visita.oficina.nombre }}</td>
+                    <td>{{ visita.anfitrion.nombre_completo }}</td>
+                    <td>
+                      <a href="{% url 'sgv:detalle-visitante' visita.visitante.id %}" class="btn btn-info btn-sm"><i class="fa-solid fa-eye"></i> Ver Visitante</a>
+                      {% if not visita.fecha_salida %}
+                        <a href="{% url 'sgv:registrar-salida' visita.id %}" class="btn btn-warning btn-sm ms-1"><i class="fa-solid fa-door-open"></i> Registrar Salida</a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+              <div class="alert alert-warning">No se encontraron visitas.</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
